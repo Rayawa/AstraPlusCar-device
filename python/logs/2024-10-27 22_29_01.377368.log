@@ -1,0 +1,52 @@
+2024-10-27 22:29:08 [MainProcess:5723][INFO]: start
+2024-10-27 22:29:08 [MainProcess:5723][INFO]: start reading cmd
+2024-10-27 22:29:08 [MainProcess:5723][INFO]: building scene 
+2024-10-27 22:29:08 [MainProcess:5723][ERROR]:  doesn't exist.
+2024-10-27 22:29:08 [MainProcess:5723][INFO]: None
+2024-10-27 22:29:30 [MainProcess:5723][INFO]: building scene Tracking
+2024-10-27 22:29:30 [MainProcess:5723][INFO]: <class 'src.scenes.tracking.Tracking'>
+2024-10-27 22:29:30 [Process-2:5736][INFO]: start init Tracking
+2024-10-27 22:29:30 [Process-2:5736][ERROR]: Cannot find the offline inference model(.om) file needed for Tracking  scene.
+2024-10-27 22:29:30 [Process-2:5736][ERROR]: Tracking init failed.
+2024-10-27 22:52:10 [MainProcess:5723][INFO]: building scene 
+2024-10-27 22:52:10 [MainProcess:5723][ERROR]:  doesn't exist.
+2024-10-27 22:52:10 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:10 [MainProcess:5723][INFO]: building scene 
+2024-10-27 22:52:10 [MainProcess:5723][ERROR]:  doesn't exist.
+2024-10-27 22:52:10 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:10 [MainProcess:5723][INFO]: building scene 
+2024-10-27 22:52:10 [MainProcess:5723][ERROR]:  doesn't exist.
+2024-10-27 22:52:10 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:13 [MainProcess:5723][INFO]: building scene 
+2024-10-27 22:52:13 [MainProcess:5723][ERROR]:  doesn't exist.
+2024-10-27 22:52:13 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:14 [MainProcess:5723][INFO]: building scene 
+2024-10-27 22:52:14 [MainProcess:5723][ERROR]:  doesn't exist.
+2024-10-27 22:52:14 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:14 [MainProcess:5723][INFO]: building scene 
+2024-10-27 22:52:14 [MainProcess:5723][ERROR]:  doesn't exist.
+2024-10-27 22:52:14 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:23 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:23 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:23 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:24 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:24 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:24 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:26 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:26 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:26 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:27 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:27 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:27 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:27 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:27 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:27 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:27 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:27 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:27 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:28 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:28 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:28 [MainProcess:5723][INFO]: None
+2024-10-27 22:52:28 [MainProcess:5723][INFO]: building scene c
+2024-10-27 22:52:28 [MainProcess:5723][ERROR]: c doesn't exist.
+2024-10-27 22:52:28 [MainProcess:5723][INFO]: None

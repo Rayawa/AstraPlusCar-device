@@ -29,8 +29,8 @@ ACL_DOUBLE = 11
 ACL_BOOL = 12
 
 CAMERA_INFO = {
-    'height': 720,
-    'width': 1280,
+    'height': 1080,
+    'width': 1920,
     'fps': 30
 }
 
@@ -48,4 +48,4 @@ for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
 done
 '''
 
-ESP32_NAME = '1a86_USB_Serial'
+#ESP32_NAME = '1a86_USB_Serial'

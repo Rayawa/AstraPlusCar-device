@@ -1,0 +1,4 @@
+2024-08-01 10:00:06 [MainProcess:5565][INFO]: start
+2024-08-01 10:00:07 [Process-2:5580][INFO]: Manual loop start
+2024-08-01 10:01:11 [Process-1:5578][INFO]: Cam broadcaster closing
+2024-08-01 10:01:11 [MainProcess:5565][INFO]: stopping.

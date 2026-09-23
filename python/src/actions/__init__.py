@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from src.actions.base_action import Advance, SpinAntiClockwise, BackUp, SpinClockwise, Sleep, Stop, SetServo, ShiftLeft, \
-    ShiftRight, LeftOblique, RightOblique, TurnLeft, TurnRight, CustomAction
+from src.actions.base_action import Advance, SpinAntiClockwise, BackUp, SpinClockwise, Stop, SetServo, ShiftLeft, \
+    ShiftRight, LeftOblique, RightOblique, TurnLeft, TurnRight, CustomAction,Sleep
 
 from src.actions.complex_actions import TurnRightInPlace, TurnLeftInPlace, TurnAround, Start, Parking
 

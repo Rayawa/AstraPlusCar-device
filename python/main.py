@@ -11,7 +11,7 @@ from src.actions import Stop
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument('--mode', type=str, required=False, default='manual',
+    parser.add_argument('--mode', type=str, required=False, default='easy',
                         choices=['cmd', 'voice', 'manual','easy'])
 
     return parser.parse_args()
@@ -35,14 +35,14 @@ if __name__ == '__main__':
                 key = getkey()
                 if key == 'esc':
                     process.join()
-                    camera.stop_sign.value = True
-                    camera_process.join()
+                    #camera.stop_sign.value = True
+                    #camera_process.join()
                     break
                 else:
                     msg_queue.put(key)
         except (KeyboardInterrupt, SystemExit):
-            camera.stop_sign.value = True
-            camera_process.join()
+            #camera.stop_sign.value = True
+            #camera_process.join()
             os.system('stty sane')
             log.info('stopping.')
     elif args.mode == 'cmd':
@@ -92,8 +92,8 @@ if __name__ == '__main__':
         process_list = []
         task1 = scene_initiator('Helper')(shared_memory_name, CAMERA_INFO, msg_queue)
         process_list.append(Process(target=task1.loop))
-        task2 = scene_initiator('LF')(shared_memory_name, CAMERA_INFO, msg_queue)
-        process_list.append(Process(target=task2.loop))
+        #task2 = scene_initiator('LF')(shared_memory_name, CAMERA_INFO, msg_queue)
+        #process_list.append(Process(target=task2.loop))
 
         for process in process_list:
             process.start()

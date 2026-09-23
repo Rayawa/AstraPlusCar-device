@@ -1,0 +1,5 @@
+2024-07-26 11:45:20 [MainProcess:8471][INFO]: start
+2024-07-26 11:45:20 [Process-2:8480][INFO]: Manual loop start
+2024-07-26 11:45:25 [Process-2:8480][INFO]: image saved.
+2024-07-26 11:46:23 [Process-1:8479][INFO]: Cam broadcaster closing
+2024-07-26 11:46:23 [MainProcess:8471][INFO]: stopping.

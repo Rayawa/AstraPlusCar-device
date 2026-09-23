@@ -1,0 +1,5 @@
+2024-12-11 15:46:54 [MainProcess:7781][INFO]: start
+2024-12-11 15:46:54 [Process-1:7811][INFO]: Manual loop start
+2024-12-11 15:47:32 [Process-1:7811][INFO]: image saved.
+2024-12-11 15:53:30 [Process-1:7811][INFO]: image saved.
+2024-12-11 15:54:26 [MainProcess:7781][INFO]: stopping.

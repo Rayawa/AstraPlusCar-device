@@ -1,0 +1,5 @@
+2024-12-25 17:19:08 [MainProcess:3574][INFO]: start
+2024-12-25 17:19:08 [Process-2:3598][INFO]: start init Helper
+2024-12-25 17:19:12 [Process-2:3598][INFO]: Helper model init succ.
+2024-12-25 17:19:14 [Process-1:3597][INFO]: Cam broadcaster closing
+2024-12-25 17:19:14 [MainProcess:3574][INFO]: stopping.

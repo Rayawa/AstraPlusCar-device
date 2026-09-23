@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from abc import ABC
-
-from src.actions.base_action import Advance, Sleep, SpinAntiClockwise, Stop, SpinClockwise, CustomAction, ShiftLeft, \
+import time
+from src.actions.base_action import Advance, SpinAntiClockwise, Stop, Sleep,SpinClockwise, CustomAction, ShiftLeft, \
     TurnRight
 
 
 class ComplexAction(ABC):
-    def __init__(self, ):
-        # 当前动作是否强制执行，默认为强制执行
-        self.force = True
-        # 当前动作序列是否更新控制器记录的速度，默认为不更新
-        self.update_controller_speed = False
+
         pass
 
 
@@ -44,18 +40,17 @@ class TurnAround(ComplexAction):
         super().__init__()
         self.action_seq = [
             Stop(),
-            Sleep(0.1),
-            Advance(speed=30),
-            Sleep(1.55),
+            Sleep(2),
+            Advance(speed=50),
             Stop(),
-            Sleep(0.3),
+            Sleep(2),
             SpinAntiClockwise(speed=50),
-            Sleep(0.4),
+            Sleep(2),
             Advance(speed=30),
-            Sleep(0.9),
+            Sleep(2),
             SpinAntiClockwise(speed=50),
-            Sleep(0.45),
-            Stop(),
+            Sleep(2),
+            Stop()
 
         ]
 

@@ -24,7 +24,7 @@ class Helper(BaseScene):
             return True
         self.det = YoloV5(det_path)
         log.info(f'{self.__class__.__name__} model init succ.')
-        self.ctrl.execute(SetServo(servo=[90, 65]))
+        #self.ctrl.execute(SetServo(servo=[90, 65]))
         return False
 
     def loop(self):
