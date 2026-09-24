@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 from ctypes import c_bool
 from multiprocessing import shared_memory, Value
+import time
 
 from src.utils import Controller
 
@@ -19,6 +20,11 @@ class BaseScene(ABC):
         self.height = self.camera_info.get('height', 720)
         self.width = self.camera_info.get('width', 1280)
         self.fps = self.camera_info.get('fps', 30)
+        self.last_frame_time = self.camera_info.get('last_frame_time')
+
+    def camera_is_fresh(self):
+        return (self.last_frame_time is None or
+                0 < time.monotonic() - self.last_frame_time.value < 2)
 
     @abstractmethod
     def init_state(self):

@@ -35,6 +35,10 @@ class LF(BaseScene):
             return
         frame = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.broadcaster.buf)
         log.info(f'{self.__class__.__name__} loop start')
+        if not self.camera_is_fresh():
+            log.error('Camera stream stopped; refusing to start LF')
+            self.ctrl.execute(Stop())
+            return
         self.ctrl.execute(Start())
         try:
             while True:
@@ -42,6 +46,10 @@ class LF(BaseScene):
                     break
                 if self.pause_sign.value:
                     continue
+                if not self.camera_is_fresh():
+                    log.error('Camera stream stopped; stopping LF')
+                    self.ctrl.execute(Stop())
+                    break
                 start = time.time()
                 img_bgr = frame.copy()
                 curr_steering_val = float(self.net.infer(img_bgr)[0])

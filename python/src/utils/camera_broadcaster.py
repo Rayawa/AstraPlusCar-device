@@ -1,110 +1,93 @@
+import time
 from ctypes import c_bool
-from datetime import datetime
-from multiprocessing import shared_memory, Value
+from multiprocessing import Event, Value, shared_memory
 
 import cv2
 import numpy as np
-import pynng
-import struct
+
 from src.utils.logger import logger_instance as log
-# from pyorbbecsdk import Config
-# from pyorbbecsdk import OBError
-# from pyorbbecsdk import OBSensorType, OBFormat
-# from pyorbbecsdk import Pipeline, FrameSet
-# from pyorbbecsdk import VideoStreamProfile
-# from src.utils.utils import frame_to_bgr_image
+
 
 class CameraBroadcaster:
+    """Publish Astra+ color frames as BGR images in shared memory."""
+
     def __init__(self, camera_info):
         self.height = camera_info.get('height', 480)
         self.width = camera_info.get('width', 640)
         self.fps = camera_info.get('fps', 30)
         self.stop_sign = Value(c_bool, False)
-        self.frame = shared_memory.SharedMemory(create=True, size=np.zeros(shape=(self.height, self.width, 3),
-                                                                           dtype=np.uint8).nbytes)
+        self.ready = Event()
+        self.failed = Event()
+        self.last_frame_time = Value('d', 0.0)
+        self.frame = shared_memory.SharedMemory(create=True, size=self.height * self.width * 3)
         self.memory_name = self.frame.name
 
     def run(self):
-        sender = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.frame.buf)
-
+        pipeline = None
+        sender = None
         try:
-            with pynng.Sub0() as sock:
-                sock.subscribe("")
-                sock.dial("ipc:///tmp/pubsub.ipc")
+            # Astra+ requires Orbbec SDK v1. Import in the child so startup
+            # failures can be reported through the failed event.
+            from pyorbbecsdk import Config, OBFormat, OBSensorType, Pipeline
+            from src.utils.utils import frame_to_bgr_image
 
-                while True:
-                    if self.stop_sign.value:
-                        self.frame.close()
-                        self.frame.unlink()
-                        break
-                    msg =  sock.recv_msg()
-                    format_string = 'II' 
-                    result = struct.unpack(format_string, msg.bytes[:struct.calcsize(format_string)])
-                    width= 1920
-                    height= 1080
-                    #print(result) 
-                    yuv420sp = np.frombuffer(msg.bytes[struct.calcsize(format_string):], dtype=np.uint8).reshape(height + height // 2, width)
-                    mBgr = cv2.cvtColor(yuv420sp, cv2.COLOR_YUV2BGR_NV21)
-                    sender[:] = mBgr[:]
-        except (KeyboardInterrupt, SystemExit):
-            log.info('Cam broadcaster closing')
+            pipeline = Pipeline()
+            profiles = pipeline.get_stream_profile_list(OBSensorType.COLOR_SENSOR)
+            profile = None
+            for color_format in (OBFormat.MJPG, OBFormat.YUYV, OBFormat.RGB):
+                try:
+                    profile = profiles.get_video_stream_profile(
+                        self.width, self.height, color_format, self.fps)
+                    break
+                except Exception:
+                    continue
+            if profile is None:
+                profile = profiles.get_default_video_stream_profile()
+            log.info(f'Astra+ color profile: {profile}')
+
+            config = Config()
+            config.enable_stream(profile)
+            pipeline.start(config)
+            sender = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.frame.buf)
+            last_frame = time.monotonic()
+
+            while not self.stop_sign.value:
+                frames = pipeline.wait_for_frames(200)
+                color_frame = frames.get_color_frame() if frames is not None else None
+                image = frame_to_bgr_image(color_frame) if color_frame is not None else None
+                if image is None:
+                    if time.monotonic() - last_frame > 5:
+                        raise TimeoutError('Astra+ color stream produced no frames for 5 seconds')
+                    continue
+                if image.ndim != 3 or image.shape[2] != 3 or image.dtype != np.uint8:
+                    raise ValueError(f'Unexpected Astra+ color frame: {image.shape}, {image.dtype}')
+                if image.shape[:2] != (self.height, self.width):
+                    image = cv2.resize(image, (self.width, self.height))
+                sender[:] = image
+                last_frame = time.monotonic()
+                self.last_frame_time.value = last_frame
+                self.ready.set()
+        except Exception:
+            self.failed.set()
+            log.exception('Astra+ color capture failed')
+        finally:
+            self.ready.clear()
+            if pipeline is not None:
+                try:
+                    pipeline.stop()
+                except Exception:
+                    log.exception('Failed to stop Astra+ pipeline')
+            del sender
             self.frame.close()
-            self.frame.unlink()
-        # cap = cv2.VideoCapture()
-        # cap.open(0, apiPreference=cv2.CAP_V4L2)
-        # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        # cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-        # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-        # cap.set(cv2.CAP_PROP_FPS, self.fps)
-        # sender = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.frame.buf)
 
-        # try:
-        #     while True:
-        #         if self.stop_sign.value:
-        #             self.frame.close()
-        #             self.frame.unlink()
-        #             break
-        #         start = datetime.now()
-        #         ret, frame = cap.read()
-        #         end1 = datetime.now()
-        #         resized_frame = cv2.resize(frame, (self.width, self.height))
-        #         sender[:] = resized_frame[:]
-        #         end2 = datetime.now()
-        #         log.debug(f'{self.memory_name}  read time: {end1 - start}, copy time: {end2 - end1}')
-        # except (KeyboardInterrupt, SystemExit):
-        #     log.info('Cam broadcaster closing')
-        #     self.frame.close()
-        #     self.frame.unlink()
-        #     import pynng
+    def close(self):
+        """Release the shared memory after all scene processes have exited."""
+        self.frame.close()
+        self.frame.unlink()
 
-# import pynng
-# import cv2
-# import numpy as np
-# import struct
-# with pynng.Sub0() as sock:
-#         sock.subscribe("")
-#         sock.dial("ipc:///tmp/pubsub.ipc")
-
-#         #while True:
-#         msg =  sock.recv_msg()
-#             #(integer_value,) = struct.unpack('>I', msg.bytes)
-#            # print('Integer Value:', integer_value)
-
-
-#         format_string = 'II'  # L�����޷��ų�����(4�ֽ�)��H�����޷��Ŷ�����(2�ֽ�)
-
-#         result = struct.unpack(format_string, msg.bytes[:struct.calcsize(format_string)])
-#         width= 1920
-#         height= 1080
-
-#         yuv420sp = np.frombuffer(msg.bytes[struct.calcsize(format_string):], dtype=np.uint8).reshape(height + height // 2, width)
-#         print(result)  # ���: (262145, 513)
-
-
-#         # ת����ɫ�ռ�
-#         mBgr = cv2.cvtColor(yuv420sp, cv2.COLOR_YUV2BGR_NV21)
-
-#         # д��ͼ���ļ�
-#         cv2.imwrite("./readYuv.jpg", mBgr)
-#             #print(msg.bytes)
-
+    def wait_until_ready(self, process, timeout=10):
+        deadline = time.monotonic() + timeout
+        while not self.ready.wait(timeout=0.1):
+            if self.failed.is_set() or not process.is_alive() or time.monotonic() >= deadline:
+                return False
+        return not self.failed.is_set() and process.is_alive()

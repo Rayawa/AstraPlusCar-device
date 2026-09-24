@@ -41,6 +41,10 @@ class Helper(BaseScene):
                     break
                 if self.pause_sign.value:
                     continue
+                if not self.camera_is_fresh():
+                    log.error('Camera stream stopped; stopping Helper')
+                    self.ctrl.execute(Stop())
+                    break
                 start = time.time()
                 img_bgr = frame.copy()
                 bboxes = self.det.infer(img_bgr)

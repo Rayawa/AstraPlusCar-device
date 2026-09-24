@@ -103,8 +103,24 @@ python3 main.py
 | e  | 顺时针旋转     |
 | ↑  | 加速        |
 | ↓  | 减速        |
-| c  | 捕获当前摄像头图片 |
+| p  | 捕获当前摄像头图片 |
 | space  | 临时停车 |
+
+### Astra+ 彩色摄像头检查
+
+本项目使用 Orbbec Astra+ 的彩色流。车载 Python 环境需安装支持 Astra+ 的
+[pyorbbecsdk SDK v1 主分支](https://github.com/orbbec/pyorbbecsdk/tree/main)；
+不要使用不支持 Astra+ 的 SDK v2。先在车轮离地或电机断电时运行独立检查：
+
+```bash
+cd /home/python
+python3 camera_probe.py --seconds 600 --output /tmp/astra_probe.jpg
+```
+
+检查应持续 10 分钟不报错，并生成有实际场景内容的图片。再运行
+`python3 main.py --mode manual`，按 `p` 将图片保存到 `capture/`。
+当前 Manual 模式没有实时预览窗口；按 `esc` 退出。摄像头断流时自动场景会停车退出。
+重复运行探针确认设备可重新打开；拔掉 USB 时探针应报断流，接回后重新运行应恢复。
 
 ### 2.2 运行小车自动驾驶与泊车样例
 ```
@@ -113,7 +129,7 @@ cd /home/python
 
 执行自动驾驶小车入口代码
 ```
-python3 main.py -mode==cmd
+python3 main.py --mode cmd
 ```
 在命令行输入
 ```

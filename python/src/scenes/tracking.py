@@ -43,6 +43,10 @@ class Tracking(BaseScene):
                 break
             if self.pause_sign.value:
                 continue
+            if not self.camera_is_fresh():
+                log.error('Camera stream stopped; stopping Tracking')
+                self.ctrl.execute(Stop())
+                break
 
             img_bgr = frame.copy()
             bboxes = self.model.infer(img_bgr)
