@@ -125,6 +125,27 @@ PYTHONPATH=/home/HwHiAiUser/pyorbbecsdk/install/lib \
 重复运行探针确认设备可重新打开；拔掉 USB 时探针应报断流，接回后重新运行应恢复。
 车轮未架空时只运行探针，不运行 `main.py` 或行驶场景。
 
+### 在电脑浏览器实时监看 Astra+
+
+预览程序独立使用摄像头，不加载车控代码；先停止其他 Astra+ 取流程序，
+再在小车上运行：
+
+```bash
+cd /home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python
+PYTHONPATH=/home/HwHiAiUser/pyorbbecsdk/install/lib \
+  /home/HwHiAiUser/pyorbbecsdk/venv/bin/python camera_preview.py
+```
+
+在电脑的另一个终端建立 SSH 转发：
+
+```bash
+ssh -N -L 8765:127.0.0.1:8765 root@192.168.8.204
+```
+
+然后在电脑浏览器打开 `http://127.0.0.1:8765/`。关闭预览程序用 `Ctrl+C`；
+运行 `main.py` 前须先关闭预览，以免两个进程争用摄像头。
+预览默认 1280×720、15 fps，服务仅监听小车的本地回环地址。
+
 ### 2.2 运行小车自动驾驶与泊车样例
 ```
 cd /home/python
