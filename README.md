@@ -1,6 +1,6 @@
 # AstraPlusCar 设备端（`codex/camerafix`）
 
-本分支把 Orbbec Astra+ 的彩色画面接入小车，并提供独立拍照与电脑浏览器监看。小车地址为 `root@192.168.8.204`，车载项目目录为：
+本分支把 Orbbec Astra+ 的彩色画面接入小车，并提供独立拍照与电脑浏览器监看。[主程序操作指令总表](#主程序操作指令总表)列出了当前全部模式、手动按键和命令模式输入。小车地址为 `root@192.168.8.204`，车载项目目录为：
 
 ```text
 /home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python
@@ -18,8 +18,8 @@ SSH 会提示输入密码；不要把密码写进命令或脚本。以下命令�
 | 主程序相机共享内存 | `src/utils/camera_broadcaster.py` | 无 | 已单独验证真实画面写入共享内存；尚未运行完整 `main.py` |
 | 手动驾驶与按 `p` 拍照 | `main.py --mode manual` | 无 | 代码具备，车轮着地期间未运行主程序 |
 | 标识辅助转向 | `main.py --mode easy` 或 `cmd` 中输入 `Helper` | `weights/yolo.om` | 仓库有模型文件；推理与电机动作尚未实车验收 |
-| 巡线 | `cmd` 中输入 `LF` | `weights/lfnet.om` | 仓库缺少模型，不可直接使用 |
-| 目标跟踪 | `cmd` 中输入 `Tracking` | `weights/tracking.om` | 仓库缺少模型，不可直接使用 |
+| 巡线 | `cmd` 中输入 `LF` | `weights/lfnet.om` | 仓库缺少模型；舵机和转向调用也需修复，不可直接使用 |
+| 目标跟踪 | `cmd` 中输入 `Tracking` | `weights/tracking.om` | 仓库缺少模型；舵机调用也需修复，不可直接使用 |
 | 语音模式 | `main.py --mode voice` | — | 代码明确抛出 `NotImplementedError`，未实现 |
 
 `Helper` 当前只读取 `yolo.om`；旧文档提到的 `cls.om` 未在该场景中加载。`easy` 只启动 `Helper`。`cmd` 不能切换到 `Manual`。
@@ -121,39 +121,58 @@ $CAMERA_PY camera_preview.py --width 640 --height 480 --fps 15
 
 预览服务只监听小车的 `127.0.0.1`，通过 SSH 隧道访问。当前独立预览占用摄像头，不能与 `main.py` 同时运行；边运行小车边监看仍需实现同一取流源的画面分发。
 
-### 4. 手动控制及拍照（仅车轮架空或电机断电后）
+## 主程序操作指令总表
 
-确认第 1 节的主程序依赖检查通过、预览已退出，再在小车 SSH 终端运行：
+**以下 `main.py` 命令可能接触电机，只能在车轮架空或电机断电、车控准备妥当后使用。** 先按第 1 节登录、进入 `python` 目录、设置环境，并退出独立相机探针或网页预览。以下命令中的 `$CAMERA_PY` 是第 1 节设置的 Python 3.9 路径。
 
-```bash
-$CAMERA_PY main.py --mode manual
-```
+| 启动命令（小车 SSH 终端） | 进入后如何操作 | 当前状态 |
+| --- | --- | --- |
+| `$CAMERA_PY main.py` 或 `$CAMERA_PY main.py --mode manual` | 直接按下方手动按键，不用回车 | 手动驾驶和拍照代码已接入，完整主程序尚未实车验收 |
+| `$CAMERA_PY main.py --mode cmd` | 输入下方场景命令，**每条都要回车** | 场景命令入口已实现，场景状态见下表 |
+| `$CAMERA_PY main.py --mode easy` | 自动启动 `Helper`；按 `Esc` 退出，其他按键无作用 | 依赖 `weights/yolo.om`，尚未实车验收 |
+| `$CAMERA_PY main.py --mode voice` | 无可用语音命令 | 未实现，启动会抛出 `NotImplementedError` |
 
-`p`：把共享内存中的当前画面保存到 `capture/`；`space`：停车；`esc`：停车并退出。其余按键会执行车控操作：`w/s` 前进/后退，`a/d` 左转/右转，`q/e` 逆时针/顺时针旋转，`←/→` 或 `z/c` 左右平移，`↑/↓` 调整速度。`g` 的舵机路径在现有代码中未验收，不建议使用。当前手动模式没有终端预览窗口。
+### manual：单键操作
 
-在小车 SSH 终端查看最新截图：
+SSH 登录须保留终端，例如 `ssh -tt root@192.168.8.204`。手动模式为单键输入，**不用按回车**；默认速度值为 `40`。动作键发出一次控制指令后，程序不会因松开按键自动停车，请用空格停车。当前手动模式没有终端预览窗口。
+
+| 按键 | 代码中的操作 | 当前说明 |
+| --- | --- | --- |
+| `w` | 前进 | `Advance` |
+| `s` | 后退 | `BackUp` |
+| `a` | 左转 | `TurnLeft` |
+| `d` | 右转 | `TurnRight` |
+| `q` | 原地逆时针旋转 | `SpinAntiClockwise` |
+| `e` | 原地顺时针旋转 | `SpinClockwise` |
+| `z` 或 `←` | 左平移 | `ShiftLeft`；`z` **不会**掉头，后面的掉头分支无法执行 |
+| `c` 或 `→` | 右平移 | `ShiftRight` |
+| `Space`（空格） | 停车 | `Stop`，仍留在手动模式 |
+| `Esc` | 停车并退出主程序 | 向手动场景发送退出消息 |
+| `p` | 拍照 | 将共享内存中的当前彩色帧写入小车 `capture/`，文件名为时间戳 JPG |
+| `↑` / `↓` | 代码意图是速度 `+1` / `-1`，范围 `0–100` | **当前有缺陷，不要使用**：按键后仍执行上一个动作；首次按可能因上一个动作为空而使场景报错 |
+| 大写 `A` / `B` / `C` / `D` | 被误识别为 `↑` / `↓` / `→` / `←` | `getkey()` 把这些字母的 ASCII 值当成方向键代码；请只用表中的小写动作键 |
+| `g` | 代码意图是舵机动作 | **当前不可用**：控制器没有初始化 `board`，执行会报错 |
+
+其他按键（包括 `t`、`r`、`x`）没有手动控制功能。`p` 的截图只表示当前共享帧已写盘；若要独立验证相机取帧，请使用第 2 节的 `camera_probe.py`。在小车 SSH 终端查看最新手动截图：
 
 ```bash
 ls -lt capture/*.jpg | head
 ```
 
-### 5. Helper、LF、Tracking 场景（仅车轮架空或电机断电后）
+### cmd：逐行输入的场景命令
 
-`Helper` 需要 `weights/yolo.om`，会根据模型结果发出转向动作。`easy` 模式直接启动它：
+启动 `$CAMERA_PY main.py --mode cmd` 后，输入以下**大小写完全一致**的文本，再按回车。它不接受 `w`、`a` 等手动驾驶按键。
 
-```bash
-$CAMERA_PY main.py --mode easy
-```
+| 输入 | 作用 | 当前状态 |
+| --- | --- | --- |
+| `Helper` | 启动识别标识后执行转向的自动场景 | 读取现有 `weights/yolo.om`；推理和电机动作尚未实车验收 |
+| `LF` | 启动巡线场景 | 缺少 `weights/lfnet.om`；即使补齐，当前舵机调用及部分转向参数也会报错 |
+| `Tracking` | 启动目标跟踪场景 | 缺少 `weights/tracking.om`；即使补齐，当前舵机调用也会报错 |
+| `clear` | 结束已启动的所有场景并发出停车指令 | 保持在 `cmd`，之后可输入其他场景命令 |
+| `stop` | 退出 `cmd` 和主程序 | 退出清理时会发出停车指令 |
+| `Manual` | 无法切换手动模式 | 只打印不支持的错误；须退出后用 `--mode manual` 启动 |
 
-在 `easy` 模式中按 `esc` 退出。命令模式允许选择场景：
-
-```bash
-$CAMERA_PY main.py --mode cmd
-```
-
-进入命令模式后输入 `Helper`、`LF` 或 `Tracking` 并回车；输入 `clear` 会结束已启动的场景并停车，输入 `stop` 会退出主程序。不要在一个未结束的场景上重复启动其他场景。
-
-`LF` 必须先提供匹配当前板卡的 `weights/lfnet.om`；`Tracking` 必须先提供 `weights/tracking.om`。仓库目前没有这两个文件，二者也未做车控验收。不要照搬旧文档中的 `Ascend310B1` 转换命令来推断当前板卡的模型兼容性。`voice` 模式尚未实现。
+未知命令只打印错误。重复输入场景名会再次启动进程，程序不会自动结束旧场景；切换前先输入 `clear`。`LF` 和 `Tracking` 的模型文件及代码问题未解决前不能作为可运行功能；不要照搬旧文档中的 `Ascend310B1` 转换命令来推断当前板卡的模型兼容性。
 
 ## 相机链路与验证范围
 
