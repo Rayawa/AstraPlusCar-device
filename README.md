@@ -1,198 +1,166 @@
-# 智能小车E2E样例Demo
+# AstraPlusCar 设备端（`codex/camerafix`）
 
-## 1 功能与原理介绍
-智能小车通过摄像头感知周围环境自主地进行运动控制，采集环境数据后在开发者套件上进行AI推理，根据推理结果发出指令控制小车的运动状态。小车运动状态的控制需要借助ESP32微控制器，使用Arduino平台可以对其进行嵌入式开发。主控与小车主体间控制指令的发出和数据的返回，需要通过串口协议进行双向通信。
-智能小车从底层硬件到上层AI应用需要完成的任务。
-- 了解智能小车的组成及部件原理
-- 基于Arduino的硬件控制功能实现。
-- 串口通信协议定义。
-- ESP32硬件主程序设计。
-- 开发者套件与ESP32进行指令通信的接口程序开发。
-- AI推理应用开发。
+本分支把 Orbbec Astra+ 的彩色画面接入小车，并提供独立拍照与电脑浏览器监看。小车地址为 `root@192.168.8.204`，车载项目目录为：
 
-主要实现原理如下：
-![输入图片说明](python/image.png)
-
-小车协作图如下：
-![输入图片说明](image.png)
-
-### 1.1 硬件部分
-
-[小车机械结构组件](https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Atlas%20200I%20DK%20A2/DevKit/samples/23.0.RC1/e2e-samples/Car/E2E%E6%99%BA%E8%83%BD%E5%B0%8F%E8%BD%A6%E6%A0%B7%E4%BE%8B3D%E7%BB%93%E6%9E%84%E4%BB%B6.zip)
-
-
-小车硬件部分准备和组装等步骤请依照智能车应用开发指南完成，本部分代码使用默认搭配已搭建完成的智能小车使用。
-
-### 1.2 代码部分
-
-
-本项目涉及智能小车控制底层代码，简单运动和复杂运动代码，各类工具以及多个推理模型，工程目录如下图所示：
-
-```
-Car
-├── python
-│   ├── main.py   #小车demo运行总入口
-│   ├── requirements.txt #小车demo样例所需依赖
-│   ├── src
-│   │   ├── Lane-Follow-Train #循迹驾驶部分训练代码
-│   │   ├── det_label_spilt #检测辅助分类模型
-│   │   ├── actions
-│   │   │   ├── base_action.py #小车基础运动代码
-│   │   │   ├── complex_actions.py #小车复杂运动代码
-│   │   │   └── __init__.py
-│   │   ├── models
-│   │   │   ├── bsae_model.py #基础模型
-│   │   │   ├── det_cls.py #检测分类模型
-│   │   │   ├── __init__.py
-│   │   │   ├── lfnet.py #推理
-│   │   │   └── yolov5.py #yolov5检测模型
-│   │   ├── scenes  # 智能车预设场景相关代码
-│   │   │   ├── base_scene.py 
-│   │   │   ├── command.py
-│   │   │   ├── helper.py
-│   │   │   ├── __init__.py
-│   │   │   ├── lane_following.py
-│   │   │   ├── manual.py
-│   │   │   └── tracking.py
-│   │   └── utils #工具类python文件
-│   │       ├── acl_utils.py
-│   │       ├── camera_broadcaster.py
-│   │       ├── common_utils.py
-│   │       ├── constant.py
-│   │       ├── controller.py
-│   │       ├── cv_utils.py
-│   │       ├── __init__.py
-│   │       ├── init_utils.py
-│   │       └── logger.py
-│   └── weights #模型权重文件
-└── 基于ESP32的智能小车控制
-    ├── car_ctrl_esp32.ino
+```text
+/home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python
 ```
 
-## 2 运行步骤
+SSH 会提示输入密码；不要把密码写进命令或脚本。以下命令对应这台已调试过的小车，换设备时应重新确认路径与依赖。
 
-### 2.1 准备运行环境
+## 当前功能与状态
 
-下载智能车运行所需镜像
+| 功能 | 入口 | 模型 | 当前状态 |
+| --- | --- | --- | --- |
+| Astra+ USB 检查 | `lsusb` | 无 | 此前已识别 RGB `2bc5:0536` 和深度 `2bc5:0636`；实际项目只取彩色流 |
+| 独立拍照与连续取帧 | `camera_probe.py` | 无 | 已拍到非黑色 1920×1080 JPG；10 分钟收到 17,920 帧 |
+| 电脑浏览器实时监看 | `camera_preview.py` | 无 | 已验证 1280×720、15 fps；原生 MJPEG 直接转发，经 SSH 隧道访问 |
+| 主程序相机共享内存 | `src/utils/camera_broadcaster.py` | 无 | 已单独验证真实画面写入共享内存；尚未运行完整 `main.py` |
+| 手动驾驶与按 `p` 拍照 | `main.py --mode manual` | 无 | 代码具备，车轮着地期间未运行主程序 |
+| 标识辅助转向 | `main.py --mode easy` 或 `cmd` 中输入 `Helper` | `weights/yolo.om` | 仓库有模型文件；推理与电机动作尚未实车验收 |
+| 巡线 | `cmd` 中输入 `LF` | `weights/lfnet.om` | 仓库缺少模型，不可直接使用 |
+| 目标跟踪 | `cmd` 中输入 `Tracking` | `weights/tracking.om` | 仓库缺少模型，不可直接使用 |
+| 语音模式 | `main.py --mode voice` | — | 代码明确抛出 `NotImplementedError`，未实现 |
 
-[镜像文件](https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Atlas%20200I%20DK%20A2/DevKit/images/23.0.RC1/1.1.0/A200I-DK-A2_e2e-samples-image_1.1.0_ubuntu22.04-aarch64.img.zip)
-### 2.2 运行小车手动控制样例
+`Helper` 当前只读取 `yolo.om`；旧文档提到的 `cls.om` 未在该场景中加载。`easy` 只启动 `Helper`。`cmd` 不能切换到 `Manual`。
 
-将代码上传到智能车上车载DK后，进入到小车工作目录
+## 安全边界与环境
+
+**车轮着地时，只运行 USB 检查、`camera_probe.py` 和 `camera_preview.py`。不要运行 `main.py`，也不要为了测试相机导入 `src.utils`。** 当前车控模块在导入时就实例化底盘控制器，并访问电机 I²C 设备。下文主程序命令仅供车轮架空或电机断电、且车控准备妥当后使用；本分支尚未在该条件下完成主程序验收。
+
+探针、网页预览和主程序都会打开 Astra+。同一时间只运行其中一个；启动下一个前先退出当前程序。`vi_l1_sample` 是 MIPI 摄像头样例，不是 Astra+ 的图像源。
+
+车上已经安装适配 Astra+ 的 Orbbec SDK v1 Python 3.9 环境。其 binding 位于 `/home/HwHiAiUser/pyorbbecsdk/install/lib`，不要用系统 Python 3.10 直接运行这些相机脚本。
+
+### 1. SSH 登录与环境设置
+
+在**电脑终端**登录；`-tt` 为后面的手动控制保留键盘终端：
+
+```bash
+ssh -tt root@192.168.8.204
 ```
-cd /home/python
 
-```
-一键安装小车运行所需依赖
-```
-pip install -r requirements.txt
-```
-
-执行手动控制小车入口代码
-```
-python3 main.py
-```
-通过键盘输入手动控制小车移动
-| 键位 | 动作        |
-|----|-----------|
-| w  | 前进        |
-| a  | 后退        |
-| s  | 左转        |
-| d  | 右转        |
-| q  | 逆时针旋转     |
-| e  | 顺时针旋转     |
-| ↑  | 加速        |
-| ↓  | 减速        |
-| p  | 捕获当前摄像头图片 |
-| space  | 临时停车 |
-
-### Astra+ 彩色摄像头检查
-
-本项目使用 Orbbec Astra+ 的彩色流。车载 Python 环境需安装支持 Astra+ 的
-[pyorbbecsdk SDK v1 主分支](https://github.com/orbbec/pyorbbecsdk/tree/main)；
-不要使用不支持 Astra+ 的 SDK v2。独立探针不加载车控代码，车轮着地时也可以运行：
+以下命令均在**小车 SSH 终端**执行，除非特别标明“电脑终端”：
 
 ```bash
 cd /home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python
-PYTHONPATH=/home/HwHiAiUser/pyorbbecsdk/install/lib \
-  /home/HwHiAiUser/pyorbbecsdk/venv/bin/python camera_probe.py \
-  --seconds 600 --output capture/astra_probe.jpg
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+export PYTHONPATH="/home/HwHiAiUser/pyorbbecsdk/install/lib${PYTHONPATH:+:$PYTHONPATH}"
+CAMERA_PY=/home/HwHiAiUser/pyorbbecsdk/venv/bin/python
 ```
 
-检查应持续 10 分钟不报错，并生成有实际场景内容的图片。再运行
-`python3 main.py --mode manual`，按 `p` 将图片保存到 `capture/`。
-当前 Manual 模式没有实时预览窗口；按 `esc` 退出。摄像头断流时自动场景会停车退出。
-重复运行探针确认设备可重新打开；拔掉 USB 时探针应报断流，接回后重新运行应恢复。
-车轮未架空时只运行探针，不运行 `main.py` 或行驶场景。
-
-### 在电脑浏览器实时监看 Astra+
-
-预览程序独立使用摄像头，不加载车控代码；先停止其他 Astra+ 取流程序，
-再在小车上运行：
+检查 USB、SDK 和模型文件；这些命令不会触碰电机：
 
 ```bash
-cd /home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python
-PYTHONPATH=/home/HwHiAiUser/pyorbbecsdk/install/lib \
-  /home/HwHiAiUser/pyorbbecsdk/venv/bin/python camera_preview.py
+lsusb | grep -E '2bc5:(0536|0636)'
+$CAMERA_PY -c 'import cv2, pyorbbecsdk; print("Orbbec SDK ready")'
+ls -lh weights/*.om
 ```
 
-在电脑的另一个终端建立 SSH 转发：
+运行主程序前还须在同一环境中确认其依赖；`requirements.txt` 不包含全部当前运行依赖：
+
+```bash
+$CAMERA_PY -c 'import acl, ais_bench, yaml, serial, filelock, torch, smbus2; print("main dependencies ready")'
+```
+
+依赖检查通过只表示模块可导入，不表示车控已经验收。不要用运行 `main.py --help` 来代替安全检查，因为导入主程序也会导入车控模块。
+
+### 2. 独立拍照与 10 分钟取流（车轮着地可运行）
+
+先退出网页预览或其他摄像头程序。短时拍照并验证图片是否为非黑画面：
+
+```bash
+$CAMERA_PY camera_probe.py --seconds 10 --output capture/astra_check.jpg
+ls -lh capture/astra_check.jpg
+```
+
+连续取帧验收：
+
+```bash
+$CAMERA_PY camera_probe.py --seconds 600 --output capture/astra_10min.jpg
+```
+
+探针会报告帧数、分辨率、亮度与保存结果；5 秒收不到彩色帧会报错。`capture/` 是小车上的截图目录。在**电脑终端**下载固定文件名的照片：
+
+```bash
+scp root@192.168.8.204:/home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python/capture/astra_check.jpg .
+```
+
+### 3. 电脑浏览器实时监看（车轮着地可运行）
+
+在**小车 SSH 终端 A**启动预览，并保持终端运行：
+
+```bash
+$CAMERA_PY camera_preview.py
+```
+
+在**电脑终端 B**建立 SSH 隧道，并保持终端运行：
 
 ```bash
 ssh -N -L 8765:127.0.0.1:8765 root@192.168.8.204
 ```
 
-然后在电脑浏览器打开 `http://127.0.0.1:8765/`。关闭预览程序用 `Ctrl+C`；
-运行 `main.py` 前须先关闭预览，以免两个进程争用摄像头。
-预览默认 1280×720、15 fps；Astra+ 返回 MJPEG 时直接转发原生 JPEG 帧，
-避免逐帧解码和重编码。服务仅监听小车的本地回环地址。
+在电脑浏览器打开 `http://127.0.0.1:8765/`；页面提供实时 MJPEG 画面和“Open current frame”单帧链接。也可在**电脑终端 C**保存当前帧：
 
-### 2.2 运行小车自动驾驶与泊车样例
-```
-cd /home/python
+```bash
+curl -o astra_snapshot.jpg http://127.0.0.1:8765/snapshot.jpg
 ```
 
-执行自动驾驶小车入口代码
-```
-python3 main.py --mode cmd
-```
-在命令行输入
-```
-Helper
-```
-加载转弯及停车辅助模型
+结束时先在终端 A、B 各按 `Ctrl+C`。若预览是此前放在后台运行的，在小车 SSH 终端查看并停止对应的预览进程：
 
-在命令行输入
-```
-LF
-```
-加载直线矫正模型，小车开始自动驾驶，待行驶至停车标识处会自动进行泊车
-
- **注：若由于光线问题导致小车循迹驾驶部分效果不达预期，可以参照/Car/src/Lane-Follow-Train中的步骤说明标注并扩充数据集，再使用训练代码训练模型，训练后在./output中输出onnx模型，使用atc模型转换命令 ** 
-```
-atc --model=./lfnet.onnx --framework=5 --output=./out/lfnet --soc_version=Ascend310B1
-```
-**转换om模型文件，将./out/lfnet.om放入到Car/python/weights中，或替换原有循迹om模型即可。**
-
- **注： 若需要训练除停车标外的其他标识作为停车检测物，在使用[开发者套件模型适配工具](https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Atlas%20200I%20DK%20A2/DevKit/tools/23.0.RC1/1.1.3/Ascend-devkit-model-adapter_1.1.3_win-x86_64.exe)构建了检测部分模型后，参照det_label_split部分构建分类辅助模型，再转换om模型。** 
-
-### 2.3 运行小车目标追踪样例
-```
-cd /home/python
+```bash
+ps -ef | grep '[c]amera_preview.py'
+pkill -TERM -f '^/home/HwHiAiUser/pyorbbecsdk/venv/bin/python camera_preview.py( |$)'
 ```
 
-执行自动驾驶小车入口代码
+预览默认 1280×720、15 fps。相机返回 MJPEG 时直接转发其 JPEG 数据，避免重复编码；这次局域网实测约 2.7 MB/s。需要降低带宽时，可在终端 A 改用支持的较低分辨率：
+
+```bash
+$CAMERA_PY camera_preview.py --width 640 --height 480 --fps 15
 ```
-python3 main.py -mode==cmd
+
+预览服务只监听小车的 `127.0.0.1`，通过 SSH 隧道访问。当前独立预览占用摄像头，不能与 `main.py` 同时运行；边运行小车边监看仍需实现同一取流源的画面分发。
+
+### 4. 手动控制及拍照（仅车轮架空或电机断电后）
+
+确认第 1 节的主程序依赖检查通过、预览已退出，再在小车 SSH 终端运行：
+
+```bash
+$CAMERA_PY main.py --mode manual
 ```
-在命令行输入
+
+`p`：把共享内存中的当前画面保存到 `capture/`；`space`：停车；`esc`：停车并退出。其余按键会执行车控操作：`w/s` 前进/后退，`a/d` 左转/右转，`q/e` 逆时针/顺时针旋转，`←/→` 或 `z/c` 左右平移，`↑/↓` 调整速度。`g` 的舵机路径在现有代码中未验收，不建议使用。当前手动模式没有终端预览窗口。
+
+在小车 SSH 终端查看最新截图：
+
+```bash
+ls -lt capture/*.jpg | head
 ```
-Tracking
+
+### 5. Helper、LF、Tracking 场景（仅车轮架空或电机断电后）
+
+`Helper` 需要 `weights/yolo.om`，会根据模型结果发出转向动作。`easy` 模式直接启动它：
+
+```bash
+$CAMERA_PY main.py --mode easy
 ```
-小车即可进入追踪模式
 
- **注：若需要重新训练不同停车标识或追踪目标，可以使用[开发者套件模型适配工具](https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Atlas%20200I%20DK%20A2/DevKit/tools/23.0.RC1/1.1.3/Ascend-devkit-model-adapter_1.1.3_win-x86_64.exe)构建目标检测应用。停车场景中检测+分类模型分别命名为'yolo.om'与'cls.om'并放入到Car/python/weights中;追踪模式的单检测模型命名为'tracking.om'并放入到Car/python/weights中做替换即可。** 
+在 `easy` 模式中按 `esc` 退出。命令模式允许选择场景：
 
+```bash
+$CAMERA_PY main.py --mode cmd
+```
 
+进入命令模式后输入 `Helper`、`LF` 或 `Tracking` 并回车；输入 `clear` 会结束已启动的场景并停车，输入 `stop` 会退出主程序。不要在一个未结束的场景上重复启动其他场景。
 
+`LF` 必须先提供匹配当前板卡的 `weights/lfnet.om`；`Tracking` 必须先提供 `weights/tracking.om`。仓库目前没有这两个文件，二者也未做车控验收。不要照搬旧文档中的 `Ascend310B1` 转换命令来推断当前板卡的模型兼容性。`voice` 模式尚未实现。
 
+## 相机链路与验证范围
+
+```text
+Astra+ USB → pyorbbecsdk v1 → camera_probe.py → capture/*.jpg
+                         ↘ camera_preview.py → 本机 MJPEG 服务 → SSH 隧道 → 电脑浏览器
+                         ↘ CameraBroadcaster → 共享内存 → Manual / Helper / LF / Tracking
+```
+
+已验证独立取流、非黑截图、10 分钟连续取帧、浏览器预览和广播器共享内存。主程序及所有可能驱动电机的场景尚未在车轮安全条件下实车测试。训练与标注工具分别见 `Lane-Follow-Train/README.md`、`auto_label_tool/README.md` 和 `det_label_split/README.md`；它们不属于上述车载 SSH 运行入口。
