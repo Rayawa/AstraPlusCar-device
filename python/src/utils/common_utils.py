@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import select
 import sys
 import threading
 import tty
@@ -37,29 +38,33 @@ def load_yaml(config_path: str):
 
 
 def getkey():
-    old_settings = termios.tcgetattr(sys.stdin)
-    tty.setcbreak(sys.stdin.fileno())
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    tty.setcbreak(fd)
     try:
-        while True:
-            b = os.read(sys.stdin.fileno(), 3).decode()
-            if len(b) == 3:
-                k = ord(b[2])
-            else:
-                k = ord(b)
-            key_mapping = {
-                127: 'backspace',
-                10: 'return',
-                32: 'space',
-                9: 'tab',
-                27: 'esc',
-                65: 'up',
-                66: 'down',
-                67: 'right',
-                68: 'left'
-            }
-            return key_mapping.get(k, chr(k))
+        key = os.read(fd, 1)
+        if not key:
+            return None
+        if key == b'\x1b':
+            # Escape is also the first byte of an arrow-key sequence. Only
+            # consume the following bytes when they actually arrive.
+            if not select.select([fd], [], [], 0.05)[0]:
+                return 'esc'
+            prefix = os.read(fd, 1)
+            if prefix in (b'[', b'O') and select.select([fd], [], [], 0.05)[0]:
+                direction = os.read(fd, 1)
+                return {
+                    b'A': 'up', b'B': 'down', b'C': 'right', b'D': 'left'
+                }.get(direction)
+            return None
 
-    except TypeError:
-        pass
+        mapping = {
+            b'\x7f': 'backspace', b'\n': 'return', b'\r': 'return',
+            b' ': 'space', b'\t': 'tab'
+        }
+        if key in mapping:
+            return mapping[key]
+        char = key.decode('ascii', errors='ignore')
+        return char.lower() if char.isalpha() else char or None
     finally:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)

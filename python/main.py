@@ -4,16 +4,20 @@ import os
 from argparse import ArgumentParser
 from multiprocessing import Process, Queue
 from queue import Full
-
-from src.actions import Stop
-from src.scenes import Manual, scene_initiator
-from src.utils import CAMERA_INFO, CameraBroadcaster, Controller, getkey, log
+import time
 
 
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument('--mode', default='manual', choices=['cmd', 'voice', 'manual', 'easy'])
-    return parser.parse_args()
+    parser.add_argument('--voice-model', help='directory containing an offline Vosk model')
+    parser.add_argument('--voice-device', help='optional ALSA microphone device name')
+    parser.add_argument('--voice-move-seconds', type=float, default=1.0,
+                        help='duration of each spoken movement command (default: 1 second)')
+    args = parser.parse_args()
+    if not 0 < args.voice_move_seconds <= 5:
+        parser.error('--voice-move-seconds must be greater than 0 and at most 5')
+    return args
 
 
 def stop_process(process, graceful=False):
@@ -30,7 +34,12 @@ def stop_process(process, graceful=False):
 def main():
     args = parse_args()
     if args.mode == 'voice':
-        raise NotImplementedError('voice control is not currently supported.')
+        from voice_control import check_voice_ready
+        check_voice_ready(args.voice_model)
+
+    from src.actions import Stop
+    from src.scenes import Manual, scene_initiator
+    from src.utils import CAMERA_INFO, CameraBroadcaster, Controller, getkey, log
 
     log.info('start')
     camera = CameraBroadcaster(CAMERA_INFO)
@@ -45,20 +54,36 @@ def main():
 
         camera_info = dict(CAMERA_INFO, last_frame_time=camera.last_frame_time)
         ctrl = Controller()
-        if args.mode == 'manual':
+        if args.mode in ('manual', 'voice'):
             task = Manual(camera.memory_name, camera_info, msg_queue)
             process = Process(target=task.loop)
             process.start()
             processes.append(process)
-            while True:
-                key = getkey()
-                if key == 'esc':
-                    try:
-                        msg_queue.put('esc', timeout=1)
-                    except Full:
-                        pass
-                    break
-                msg_queue.put(key)
+            if args.mode == 'manual':
+                while True:
+                    key = getkey()
+                    if key == 'esc':
+                        try:
+                            msg_queue.put('esc', timeout=1)
+                        except Full:
+                            pass
+                        break
+                    if key is not None:
+                        msg_queue.put(key)
+            else:
+                from voice_control import VoiceRecognizer, command_to_key
+                with VoiceRecognizer(args.voice_model, args.voice_device) as recognizer:
+                    for phrase in recognizer:
+                        key = command_to_key(phrase)
+                        log.info(f'Voice phrase: {phrase}; command: {key or "unknown"}')
+                        if key == 'esc':
+                            break
+                        if key is None:
+                            continue
+                        msg_queue.put(key, timeout=1)
+                        if key in Manual.MOTION_ACTIONS:
+                            time.sleep(args.voice_move_seconds)
+                            msg_queue.put('space', timeout=1)
 
         elif args.mode == 'cmd':
             while True:
@@ -76,6 +101,10 @@ def main():
                     continue
                 scene = scene_initiator(command)
                 if scene is not None:
+                    for process in processes:
+                        stop_process(process)
+                    processes.clear()
+                    ctrl.execute(Stop())
                     task = scene(camera.memory_name, camera_info, msg_queue)
                     process = Process(target=task.loop)
                     process.start()

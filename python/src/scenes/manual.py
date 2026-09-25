@@ -1,17 +1,30 @@
 import datetime
+import math
 import os
+from queue import Empty
+import time
 
 import cv2
 import numpy as np
 
-from src.actions import Advance, Stop, SetServo, TurnLeft, TurnRight, SpinClockwise, SpinAntiClockwise, BackUp, \
-    ShiftLeft, ShiftRight, CustomAction
-from src.actions.complex_actions import ComplexAction, TurnAround
+from src.actions import (Advance, BackUp, ShiftLeft, ShiftRight, SpinAntiClockwise,
+                         SpinClockwise, Stop, TurnLeft, TurnRight)
 from src.scenes.base_scene import BaseScene
 from src.utils import log
 
 
 class Manual(BaseScene):
+    SPEED_STEP = 20
+    TURN_SPEED = 80
+    # Chassis angular rates are radians per second. A timed turn is only an
+    # estimate until the actual wheel motion has been calibrated.
+    TURN_DURATION = math.pi / (0.3 * TURN_SPEED / 40)
+    MOTION_ACTIONS = {
+        'w': Advance, 's': BackUp, 'a': TurnLeft, 'd': TurnRight,
+        'q': SpinAntiClockwise, 'e': SpinClockwise,
+        'left': ShiftLeft, 'right': ShiftRight,
+    }
+
     def __init__(self, memory_name, camera_info, msg_queue):
         super().__init__(memory_name, camera_info, msg_queue)
         self.speed = 40
@@ -20,65 +33,51 @@ class Manual(BaseScene):
             os.makedirs(self.save_dir, exist_ok=True)
 
     def init_state(self):
-        self.ctrl.execute(SetServo(servo=[90, 65]))
+        # The current chassis controller has no servo board attached.
+        pass
 
 
     def adjust_speed(self, increment):
-        """
-        调整速度的方法
-        :param increment: 调整增量，可以为正数（增加速度）或负数（减少速度）
-        """
-        self.speed += increment
-        self.speed = min(max(self.speed, 0), 100)  # 确保速度在 25 到 60 之间
-        
+        self.speed = min(max(self.speed + increment, 0), 100)
+        log.info(f'Manual speed: {self.speed}')
+
     def loop(self):
-        # ret = self.init_state()
-        # if ret:
-        #     log.error(f'{self.__class__.__name__} init failed.')
-        #     return
         frame = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.broadcaster.buf)
         log.info(f'{self.__class__.__name__} loop start')
-       # last_action = SetServo(servo=[90, 65])
-        last_action = None
+        active_motion = None
+        turn_deadline = None
 
         while True:
             try:
-                if not self.msg_queue.empty():
+                if turn_deadline is None:
                     key = self.msg_queue.get()
                 else:
-                    continue
-            except KeyboardInterrupt:
+                    key = self.msg_queue.get(timeout=max(0, turn_deadline - time.monotonic()))
+            except Empty:
+                self.ctrl.execute(Stop())
+                turn_deadline = None
+                continue
+            except (KeyboardInterrupt, EOFError):
                 self.ctrl.execute(Stop())
                 break
 
+            if isinstance(key, str):
+                key = key.lower()
             if key == 'up':
-                 self.adjust_speed(1)
+                self.adjust_speed(self.SPEED_STEP)
             elif key == 'down':
-                 self.adjust_speed(-1)
-            elif key == 'left':
-                last_action = ShiftLeft(speed=self.speed)
-            elif key == 'right':
-                last_action = ShiftRight(speed=self.speed)
-            elif key == 'w':
-                last_action = Advance(speed=self.speed)
-            elif key == 'a':
-                last_action = TurnLeft(speed=self.speed)
-            elif key == 'g':
-                last_action =SetServo()
-            elif key == 's':
-                last_action = BackUp(speed=self.speed)
-            elif key == 'd':
-                last_action = TurnRight(speed=self.speed)
-            elif key == 'q':
-                last_action = SpinAntiClockwise(speed=self.speed)
-            elif key == 'e':
-                last_action = SpinClockwise(speed=self.speed)
-            elif key == 'z':
-                last_action = ShiftLeft(speed=self.speed)
-            elif key == 'c':
-                last_action = ShiftRight(speed=self.speed)
+                self.adjust_speed(-self.SPEED_STEP)
+            elif key in self.MOTION_ACTIONS:
+                turn_deadline = None
+                active_motion = key
+                action = Stop() if self.speed == 0 else self.MOTION_ACTIONS[key](speed=self.speed)
+                self.ctrl.execute(action)
+                continue
             elif key == 'space':
-                last_action = Stop()
+                turn_deadline = None
+                active_motion = None
+                self.ctrl.execute(Stop())
+                continue
             elif key == 'esc':
                 self.ctrl.execute(Stop())
                 break
@@ -87,20 +86,16 @@ class Manual(BaseScene):
                 cv2.imwrite(os.path.join(self.save_dir, f'{datetime.datetime.now()}.jpg'), save_img)
                 log.info(f'image saved.')
                 continue
-            # elif key == 't':
-            #     last_action = CustomAction(motor_setting=[-62, 50, 50, -50])
-            # elif key == 'r':
-            #     last_action = CustomAction(motor_setting=[55, -50, -50, 50])
             elif key == 'z':
-                last_action = TurnAround()
-            # elif key == 'x':
-            #     from src.actions.complex_actions import Spin
-            #     last_action = Spin()
+                active_motion = None
+                turn_deadline = time.monotonic() + self.TURN_DURATION
+                self.ctrl.execute(SpinAntiClockwise(speed=self.TURN_SPEED))
+                continue
             else:
                 continue
 
-            #if not isinstance(last_action, ComplexAction) and not isinstance(last_action, CustomAction):
-                #last_action.update_speed = False
-                #last_action.speed_setting = last_action.generate_speed_setting(speed=self.speed, degree=degree)
-                #last_action.fix_speed()
-            self.ctrl.execute(last_action)
+            # An arrow key updates the current movement immediately. When
+            # parked it only changes the speed for the next movement key.
+            if active_motion is not None:
+                action = Stop() if self.speed == 0 else self.MOTION_ACTIONS[active_motion](speed=self.speed)
+                self.ctrl.execute(action)

@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from src.actions import SetServo, Stop, TurnLeft, TurnRight, Advance
+from src.actions import Stop, TurnLeft, TurnRight, Advance
 from src.models import YoloV5
 from src.scenes.base_scene import BaseScene
 from src.utils import log
@@ -23,7 +23,6 @@ class Tracking(BaseScene):
             return True
         self.model = YoloV5(model_path)
         log.info(f'{self.__class__.__name__} model init succ.')
-        self.ctrl.execute(SetServo(servo=[90, 65]))
         return False
 
     def loop(self):

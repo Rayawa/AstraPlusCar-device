@@ -40,7 +40,8 @@ class YoloV5:
         for idx, class_id in enumerate(pred_all[:, 5]):
             if float(pred_all[idx][4] < float(0.05)):
                 continue
-            obj_name = self.names[int(pred_all[idx][5])]
+            class_id = int(pred_all[idx][5])
+            obj_name = self.names[class_id] if 0 <= class_id < len(self.names) else str(class_id)
             confidence = pred_all[idx][4]
             x1 = int(pred_all[idx][0])
             y1 = int(pred_all[idx][1])

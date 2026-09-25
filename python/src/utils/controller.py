@@ -19,7 +19,7 @@ import src.utils.chassis_control_node as mecanum
 import serial
 from filelock import FileLock
 
-from src.actions.base_action import BaseAction,SetServo
+from src.actions.base_action import BaseAction, SetServo, Sleep
 from src.actions.complex_actions import ComplexAction,TurnAround
 from src.utils.common_utils import SingleTonType
 from src.utils.logger import logger_instance as log
@@ -99,6 +99,9 @@ class Controller():
             if isinstance(action, ComplexAction):
                  for sub_action in action.action_seq:
                    self.execute(sub_action)
+            elif isinstance(action, Sleep):
+                 # Keep the current chassis command active during timed actions.
+                 time.sleep(action.sleep_time)
             elif isinstance(action, SetServo):
                  speed, positions = action.UpServo()  # 默认执行 RightServo 方法，可以根据需要修改
                  self.board.pwm_servo_set_position(speed, positions)

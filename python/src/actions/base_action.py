@@ -123,10 +123,11 @@ class TurnLeft():
     """
     小车左转
     """
-    def __init__(self, speed):
+    def __init__(self, speed, degree=0.3):
         self.speed = speed
+        self.degree = degree
     def generate_speed_setting(self):
-        return self.speed, 90, -0.3
+        return self.speed, 90, -self.degree
 
 
 class TurnRight():
@@ -134,11 +135,12 @@ class TurnRight():
     小车右转
     """
 
-    def __init__(self, speed):
+    def __init__(self, speed, degree=0.3):
         self.speed = speed
+        self.degree = degree
         
     def generate_speed_setting(self):
-        return self.speed, 90, 0.3
+        return self.speed, 90, self.degree
 
 
 class ShiftLeft():
@@ -190,7 +192,7 @@ class SpinClockwise():
     def __init__(self, speed):
         self.speed = speed
     def generate_speed_setting(self):
-        return 0,90,0.3
+        return 0, 90, 0.3 * self.speed / 40
 
 
 class SpinAntiClockwise():
@@ -200,7 +202,7 @@ class SpinAntiClockwise():
     def __init__(self, speed):
         self.speed = speed
     def generate_speed_setting(self):
-        return 0,90,-0.3
+        return 0, 90, -0.3 * self.speed / 40
 
 
 class SetServo():

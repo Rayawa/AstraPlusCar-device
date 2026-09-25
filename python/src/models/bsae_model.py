@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 import acl
 import numpy as np
 
-from src.utils import copy_data_device_to_device, check_ret, SUCCESS, ACL_MEMCPY_DEVICE_TO_DEVICE, \
+from src.utils import copy_data_host_to_device, check_ret, SUCCESS, ACL_MEMCPY_HOST_TO_DEVICE, \
     ACL_MEM_MALLOC_NORMAL_ONLY, ACL_FLOAT16, ACL_FLOAT, ACL_INT32, ACL_UINT32, FAILED, init_acl, deinit_acl
 from src.utils import log
 
@@ -158,7 +158,8 @@ class Model(ABC):
         if isinstance(input, np.ndarray):
             # 如果输入为numpy数据,则为数据申请device内存,并将数据拷贝到device侧
             # 申请的内存是可以复用的,不需要每次都申请内存
-            ptr = acl.util.bytes_to_ptr(input.tobytes())
+            payload = input.tobytes()
+            ptr = acl.util.bytes_to_ptr(payload)
             size = input.size * input.itemsize
             data = self._copy_input_to_device(ptr, size, index)
             if data == None:
@@ -166,7 +167,7 @@ class Model(ABC):
                 log.error("Copy input to device failed")
         # 如果直接输入内存指针,要求组织为{"data":, "size":}的dict,并且默认内存为device侧
         elif (isinstance(input, dict) and
-              input.has_key('data') and input.has_key('size')):
+              'data' in input and 'size' in input):
             size = input['size']
             data = input['data']
         else:
@@ -181,7 +182,7 @@ class Model(ABC):
         # 根据数据在模型输入中的下标位置,查看该输入是否已经申请过内存
         if buffer_item['addr'] is None:
             # 如果没有,这申请内存,拷贝数据,并记录内存以供下次复用
-            data = copy_data_device_to_device(input_ptr, size)
+            data = copy_data_host_to_device(input_ptr, size)
             if data is None:
                 log.error(f"Malloc memory and copy model %dth input to device failed {index}")
                 return None
@@ -192,7 +193,7 @@ class Model(ABC):
             # 则将数据拷贝到该内存以供本次推理
             ret = acl.rt.memcpy(buffer_item['addr'], size,
                                 input_ptr, size,
-                                ACL_MEMCPY_DEVICE_TO_DEVICE)
+                                ACL_MEMCPY_HOST_TO_DEVICE)
             if ret != SUCCESS:
                 log.error(f"Copy model %dth input to device failed {index}")
                 return None

@@ -3,7 +3,7 @@
 
 import acl
 
-from src.utils.constant import SUCCESS, ACL_MEM_MALLOC_HUGE_FIRST, ACL_MEMCPY_DEVICE_TO_DEVICE
+from src.utils.constant import SUCCESS, ACL_MEM_MALLOC_HUGE_FIRST, ACL_MEMCPY_HOST_TO_DEVICE
 from src.utils.logger import logger_instance as log
 
 
@@ -38,17 +38,17 @@ def deinit_acl(context, device_id):
     log.info('Deinit ACL Successfully')
 
 
-def copy_data_device_to_device(device_data, data_size):
+def copy_data_host_to_device(host_data, data_size):
     device_buffer, ret = acl.rt.malloc(data_size, ACL_MEM_MALLOC_HUGE_FIRST)
     if ret != SUCCESS:
         log.error(f"Malloc device memory failed, error: {ret}")
         return None
 
     ret = acl.rt.memcpy(device_buffer, data_size,
-                        device_data, data_size,
-                        ACL_MEMCPY_DEVICE_TO_DEVICE)
+                        host_data, data_size,
+                        ACL_MEMCPY_HOST_TO_DEVICE)
     if ret != SUCCESS:
-        log.error(f"Copy device data to device memory failed, error: {ret}")
+        log.error(f"Copy host data to device memory failed, error: {ret}")
         acl.rt.free(device_buffer)
         return None
 

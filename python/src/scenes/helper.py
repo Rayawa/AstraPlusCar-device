@@ -50,31 +50,38 @@ class Helper(BaseScene):
                 bboxes = self.det.infer(img_bgr)
                 log.info(f'{bboxes}')
                 bboxes = sorted(bboxes, key=lambda x: x[5], reverse=True)
-                for x1, y1, x2, y2, cate, score in bboxes:
+                if not bboxes:
+                    last_action = None
+                for x1, y1, x2, y2, cate, score in bboxes[:1]:
                     x, y = (x1 + x2) // 2, (y1 + y2) // 2
-                    h, w = y2 - y1, x2 - x1
                     log.info(f'det: {cate}')
-                    if last_action != cate and len(bboxes) > 1:
-                        cate = last_action
+                    if last_action == cate:
+                        break
 
                     if cate == 'left':
                         if 300 < x < 1000 and y >= 450:
                             self.ctrl.execute(TurnLeftInPlace())
+                            last_action = cate
                             time.sleep(1)
                             break
 
                     if cate == 'right':
                         if 420 < x < 950 and y >= 580:
                             self.ctrl.execute(TurnRightInPlace())
+                            last_action = cate
                             time.sleep(1)
                             break
 
                     if cate == 'turnaround':
                         if 420 < x < 800 and y > 350:
                             self.ctrl.execute(TurnAround())
+                            last_action = cate
                             time.sleep(2)
                             break
-                    last_action = cate
+
+                    if cate == 'stop' and 300 < x < 1000 and y >= 450:
+                        self.ctrl.execute(Stop())
+                        last_action = cate
                     break
                 log.info(f'infer cost {time.time() - start}')
         except KeyboardInterrupt:
