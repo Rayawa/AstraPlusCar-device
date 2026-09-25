@@ -1,53 +1,62 @@
-"""Check Astra+ color capture without starting the chassis controller."""
+"""Save and verify an Astra+ photo without importing the chassis controller."""
 
 import argparse
+from pathlib import Path
 import time
-from multiprocessing import Process
 
 import cv2
 import numpy as np
 
-from src.utils import CAMERA_INFO, CameraBroadcaster
+from astra_camera import frame_to_bgr_image, open_color_pipeline
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seconds', type=int, default=10)
-    parser.add_argument('--output', default='/tmp/astra_probe.jpg')
+    parser.add_argument('--output', type=Path,
+                        default=Path('capture') / f'astra_probe_{int(time.time())}.jpg')
     args = parser.parse_args()
+    if args.seconds <= 0:
+        parser.error('--seconds must be positive')
 
-    camera = CameraBroadcaster(CAMERA_INFO)
-    process = Process(target=camera.run)
+    pipeline = None
     try:
-        process.start()
-        if not camera.wait_until_ready(process):
-            raise RuntimeError('Astra+ did not deliver a color frame; check the camera log')
-
-        start = time.monotonic()
-        updates = 0
-        previous = 0.0
+        pipeline, profile = open_color_pipeline(1920, 1080, 30)
+        print(f'Astra+ color profile: {profile}', flush=True)
+        start = last_frame = time.monotonic()
+        frame_count = 0
+        image = None
         while time.monotonic() - start < args.seconds:
-            frame_time = camera.last_frame_time.value
-            if camera.failed.is_set() or not process.is_alive() or time.monotonic() - frame_time > 2:
-                raise RuntimeError('Astra+ color stream stopped or became stale')
-            if frame_time != previous:
-                updates += 1
-                previous = frame_time
-            time.sleep(0.03)
+            frames = pipeline.wait_for_frames(200)
+            color_frame = frames.get_color_frame() if frames is not None else None
+            if color_frame is None:
+                if time.monotonic() - last_frame > 5:
+                    raise TimeoutError('Astra+ produced no color frames for 5 seconds')
+                continue
+            image = frame_to_bgr_image(color_frame)
+            if image.ndim != 3 or image.shape[2] != 3 or image.dtype != np.uint8:
+                raise ValueError(f'Unexpected color image: {image.shape}, {image.dtype}')
+            last_frame = time.monotonic()
+            frame_count += 1
 
-        frame = np.ndarray((CAMERA_INFO['height'], CAMERA_INFO['width'], 3),
-                           dtype=np.uint8, buffer=camera.frame.buf).copy()
-        if not cv2.imwrite(args.output, frame):
+        if image is None or time.monotonic() - last_frame > 2:
+            raise RuntimeError('No fresh Astra+ color frame to save')
+        mean = float(image.mean())
+        bright_fraction = float(np.count_nonzero(image > 20) / image.size)
+        if mean < 5 or bright_fraction < 0.01:
+            raise RuntimeError(f'Color image is black: mean={mean:.1f}, bright={bright_fraction:.3f}')
+
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        if not cv2.imwrite(str(args.output), image):
             raise RuntimeError(f'Could not save {args.output}')
-        print(f'Color stream healthy for {args.seconds}s; observed {updates} frame updates; saved {args.output}')
+        saved = cv2.imread(str(args.output))
+        if saved is None or saved.shape != image.shape or float(saved.mean()) < 5:
+            raise RuntimeError(f'Saved photo could not be verified: {args.output}')
+        print(f'Saved {args.output}: {image.shape[1]}x{image.shape[0]}, '
+              f'frames={frame_count}, mean={mean:.1f}, bright={bright_fraction:.3f}', flush=True)
     finally:
-        camera.stop_sign.value = True
-        if process.pid is not None:
-            process.join(timeout=2)
-            if process.is_alive():
-                process.terminate()
-                process.join()
-        camera.close()
+        if pipeline is not None:
+            pipeline.stop()
 
 
 if __name__ == '__main__':

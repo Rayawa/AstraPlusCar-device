@@ -64,21 +64,16 @@ class CameraBroadcasterTest(unittest.TestCase):
         logger = types.ModuleType('src.utils.logger')
         logger.logger_instance = types.SimpleNamespace(info=lambda *args: None,
                                                        exception=lambda *args: None)
-        converter = types.ModuleType('src.utils.utils')
-        converter.frame_to_bgr_image = lambda frame: FakePipeline.image
-        sdk = types.ModuleType('pyorbbecsdk')
-        sdk.Config = type('Config', (), {'enable_stream': lambda self, profile: None})
-        sdk.OBFormat = types.SimpleNamespace(MJPG=1, YUYV=2, RGB=3)
-        sdk.OBSensorType = types.SimpleNamespace(COLOR_SENSOR=1)
-        sdk.Pipeline = FakePipeline
+        camera_sdk = types.ModuleType('astra_camera')
+        camera_sdk.open_color_pipeline = lambda width, height, fps: (FakePipeline(), 'color-profile')
+        camera_sdk.frame_to_bgr_image = lambda frame: FakePipeline.image
         cv2 = types.ModuleType('cv2')
         cv2.resize = lambda image, size: np.tile(image, (size[1], size[0], 1))
         modules = {
             'src': types.ModuleType('src'),
             'src.utils': types.ModuleType('src.utils'),
             'src.utils.logger': logger,
-            'src.utils.utils': converter,
-            'pyorbbecsdk': sdk,
+            'astra_camera': camera_sdk,
             'cv2': cv2,
         }
         self.patcher = patch.dict(sys.modules, modules)

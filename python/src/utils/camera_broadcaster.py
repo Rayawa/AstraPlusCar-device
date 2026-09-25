@@ -26,28 +26,11 @@ class CameraBroadcaster:
         pipeline = None
         sender = None
         try:
-            # Astra+ requires Orbbec SDK v1. Import in the child so startup
-            # failures can be reported through the failed event.
-            from pyorbbecsdk import Config, OBFormat, OBSensorType, Pipeline
-            from src.utils.utils import frame_to_bgr_image
+            # Import in the child so startup failures reach the failed event.
+            from astra_camera import frame_to_bgr_image, open_color_pipeline
 
-            pipeline = Pipeline()
-            profiles = pipeline.get_stream_profile_list(OBSensorType.COLOR_SENSOR)
-            profile = None
-            for color_format in (OBFormat.MJPG, OBFormat.YUYV, OBFormat.RGB):
-                try:
-                    profile = profiles.get_video_stream_profile(
-                        self.width, self.height, color_format, self.fps)
-                    break
-                except Exception:
-                    continue
-            if profile is None:
-                profile = profiles.get_default_video_stream_profile()
+            pipeline, profile = open_color_pipeline(self.width, self.height, self.fps)
             log.info(f'Astra+ color profile: {profile}')
-
-            config = Config()
-            config.enable_stream(profile)
-            pipeline.start(config)
             sender = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.frame.buf)
             last_frame = time.monotonic()
 
