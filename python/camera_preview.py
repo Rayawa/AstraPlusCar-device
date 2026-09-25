@@ -6,6 +6,7 @@ camera while running, so stop it before starting the car application.
 
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import signal
 from threading import Condition, Thread
 import time
 
@@ -49,9 +50,12 @@ class CameraStream:
     def capture(self):
         pipeline = None
         try:
+            from pyorbbecsdk import OBFormat
+
             pipeline, profile = open_color_pipeline(self.width, self.height, self.fps)
             print(f'Astra+ color profile: {profile}', flush=True)
             last_frame = time.monotonic()
+            native_mjpg_logged = False
             while True:
                 with self.condition:
                     if self.stopping:
@@ -62,16 +66,27 @@ class CameraStream:
                     if time.monotonic() - last_frame > 5:
                         raise TimeoutError('Astra+ color stream stopped for 5 seconds')
                     continue
-                image = frame_to_bgr_image(frame)
-                if image.shape[:2] != (self.height, self.width):
-                    image = cv2.resize(image, (self.width, self.height))
-                ok, encoded = cv2.imencode('.jpg', image,
-                                           [cv2.IMWRITE_JPEG_QUALITY, self.quality])
-                if not ok:
-                    raise RuntimeError('Could not encode Astra+ frame as JPEG')
+                if (frame.get_format() == OBFormat.MJPG and
+                        frame.get_width() == self.width and
+                        frame.get_height() == self.height):
+                    jpeg = bytes(frame.get_data())
+                    if not jpeg.startswith(b'\xff\xd8'):
+                        raise ValueError('Astra+ MJPG frame is missing its JPEG header')
+                    if not native_mjpg_logged:
+                        print('Streaming Astra+ native MJPG without re-encoding', flush=True)
+                        native_mjpg_logged = True
+                else:
+                    image = frame_to_bgr_image(frame)
+                    if image.shape[:2] != (self.height, self.width):
+                        image = cv2.resize(image, (self.width, self.height))
+                    ok, encoded = cv2.imencode('.jpg', image,
+                                               [cv2.IMWRITE_JPEG_QUALITY, self.quality])
+                    if not ok:
+                        raise RuntimeError('Could not encode Astra+ frame as JPEG')
+                    jpeg = encoded.tobytes()
                 last_frame = time.monotonic()
                 with self.condition:
-                    self.jpeg = encoded.tobytes()
+                    self.jpeg = jpeg
                     self.sequence += 1
                     self.condition.notify_all()
         except Exception as exc:
@@ -144,6 +159,10 @@ class PreviewServer(ThreadingHTTPServer):
 
 
 def main():
+    def stop_on_term(_signum, _frame):
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, stop_on_term)
     parser = argparse.ArgumentParser(description='Standalone Astra+ browser preview')
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--width', type=int, default=1280)
