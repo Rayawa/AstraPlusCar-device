@@ -223,7 +223,7 @@ def Set_Velocity(msg):
 #     except KeyboardInterrupt:
 #         rospy.loginfo("Shutting down")
 
-chassis = MecanumChassis()
+chassis = None
 
 start = True
 #关闭前处理
@@ -238,6 +238,7 @@ def Stop(signum, frame):
 #signal.signal(signal.SIGINT, Stop)
 
 if __name__ == '__main__':
+    chassis = MecanumChassis()
     while start:
         chassis.set_velocity(60,90,0) # 控制机器人移动函数,线速度50(0~100)，方向角180(0~360)，偏航角速度0.3(-2~2)
         time.sleep(3)

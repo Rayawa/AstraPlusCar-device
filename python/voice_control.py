@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+from threading import Event, Thread
+import time
 
 
 COMMAND_KEYS = {
@@ -31,19 +33,34 @@ def command_to_key(text):
     return COMMAND_KEYS.get(normalized)
 
 
-def check_voice_ready(model_path):
-    """Fail before camera or chassis initialization when voice is unavailable."""
+def check_voice_ready(model_path, device=None):
+    """Report missing dependencies and probe the selected capture device."""
+    errors = []
     if model_path is None or not Path(model_path).is_dir():
-        raise RuntimeError('Voice model missing: pass --voice-model with a Vosk model directory')
+        errors.append('Voice model missing: pass --voice-model, set VOSK_MODEL_PATH, '
+                      'or install weights/vosk-model')
+    elif not all((Path(model_path) / item).is_file()
+                 for item in ('am/final.mdl', 'conf/mfcc.conf')):
+        errors.append('Vosk model incomplete: expected am/final.mdl and conf/mfcc.conf')
     if shutil.which('arecord') is None:
-        raise RuntimeError('ALSA arecord is not installed')
-    cards = Path('/proc/asound/cards')
-    if not cards.exists() or 'no soundcards' in cards.read_text().lower():
-        raise RuntimeError('No microphone/sound card is detected by ALSA')
+        errors.append('ALSA arecord is not installed')
+    else:
+        command = ['arecord', '-q']
+        if device:
+            command += ['-D', device]
+        command += ['-f', 'S16_LE', '-r', '16000', '-c', '1', '-t', 'raw', '-d', '1', '/dev/null']
+        try:
+            result = subprocess.run(command, capture_output=True, timeout=4)
+            if result.returncode:
+                errors.append('Microphone capture unavailable: ' + result.stderr.decode(errors='replace').strip())
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            errors.append(f'Microphone probe failed: {exc}')
     try:
         import vosk  # noqa: F401
-    except ImportError as exc:
-        raise RuntimeError('Vosk is not installed in this Python environment') from exc
+    except ImportError:
+        errors.append('Vosk is not installed in this Python environment')
+    if errors:
+        raise RuntimeError('; '.join(errors))
 
 
 class VoiceRecognizer(AbstractContextManager):
@@ -55,29 +72,41 @@ class VoiceRecognizer(AbstractContextManager):
         self.process = None
         self.recognizer = None
         self.model = None
+        self.phrase_started = None
 
     def __enter__(self):
         from vosk import KaldiRecognizer, Model
 
         self.model = Model(str(self.model_path))
         self.recognizer = KaldiRecognizer(self.model, 16000)
+        self.recognizer.SetWords(True)
         command = ['arecord', '-q']
         if self.device:
             command.extend(['-D', self.device])
         command.extend(['-f', 'S16_LE', '-r', '16000', '-c', '1', '-t', 'raw'])
+        self.audio_started = time.monotonic()
         self.process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                         stderr=subprocess.DEVNULL)
         return self
 
     def __iter__(self):
+        started = None
         while True:
+            received = time.monotonic()
             audio = self.process.stdout.read(4000)
             if not audio:
                 raise RuntimeError('Microphone stopped delivering audio')
             if self.recognizer.AcceptWaveform(audio):
-                phrase = json.loads(self.recognizer.Result()).get('text', '').strip()
+                result = json.loads(self.recognizer.Result())
+                phrase = result.get('text', '').strip()
                 if phrase:
+                    words = result.get("result", [])
+                    self.phrase_started = (self.audio_started + words[0]["start"] if words and "start" in words[0]
+                                           else started if started is not None else received)
                     yield phrase
+                started = None
+            elif json.loads(self.recognizer.PartialResult()).get('partial') and started is None:
+                started = received
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.process is not None:
@@ -90,6 +119,40 @@ class VoiceRecognizer(AbstractContextManager):
                     self.process.wait()
             self.process.stdout.close()
         return False
+
+
+class VoiceService:
+    def __init__(self, model_path, device, inbox, report=print):
+        self.recognizer = VoiceRecognizer(model_path, device)
+        self.inbox, self.report = inbox, report
+        self.stopping = Event()
+        self.error = None
+        self.thread = Thread(target=self.run, name='voice-recognition', daemon=True)
+
+    def start(self):
+        self.recognizer.__enter__()
+        self.thread.start()
+
+    def run(self):
+        from motion_control import Command
+        try:
+            for phrase in self.recognizer:
+                if self.stopping.is_set():
+                    break
+                key = command_to_key(phrase)
+                self.report(f'Voice phrase: {phrase}; command: {key or "unknown"}')
+                if key:
+                    self.inbox.put(Command(key, 'voice', started_at=self.recognizer.phrase_started))
+        except Exception as exc:
+            if not self.stopping.is_set():
+                self.error = exc
+                self.report(f'Voice failed: {exc}')
+
+    def close(self):
+        self.stopping.set()
+        self.recognizer.__exit__(None, None, None)
+        if self.thread.ident is not None:
+            self.thread.join(timeout=3)
 
 
 if __name__ == '__main__':

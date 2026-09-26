@@ -1,24 +1,20 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-from sys import modules
+"""Load AI dependencies only when their scene is selected."""
+from importlib import import_module
 
-from src.scenes.helper import Helper
-from src.scenes.lane_following import LF
-from src.scenes.manual import Manual
-from src.scenes.tracking import Tracking
-from src.utils import log
+_SCENES = {'Manual': 'manual', 'Tracking': 'tracking', 'Helper': 'helper', 'LF': 'lane_following'}
+SCENE_NAMES = tuple(_SCENES)
+__all__ = [*_SCENES, 'scene_initiator']
 
-__all__ = ['Manual', 'Tracking', 'Helper', 'LF', 'scene_initiator']
+
+def __getattr__(name):
+    if name not in _SCENES:
+        raise AttributeError(name)
+    return getattr(import_module(f'{__name__}.{_SCENES[name]}'), name)
 
 
 def scene_initiator(name):
-    try:
-        scene = getattr(modules.get(__name__), name)
-    except AttributeError:
-        log.error(f"{name} doesn't exist.")
-        return None
-    if isinstance(scene, type):
-        return scene
-
-    log.error(f"{name} is not a valid scene.")
+    if name in _SCENES:
+        return __getattr__(name)
+    from src.utils import log
+    log.error(f'{name} is not a valid scene.')
     return None

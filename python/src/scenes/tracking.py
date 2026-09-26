@@ -30,7 +30,6 @@ class Tracking(BaseScene):
         if ret:
             log.error(f'{self.__class__.__name__} init failed.')
             return
-        frame = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.broadcaster.buf)
         log.info(f'{self.__class__.__name__} loop start')
         last_action = None
         last_not_seen = True
@@ -47,7 +46,7 @@ class Tracking(BaseScene):
                 self.ctrl.execute(Stop())
                 break
 
-            img_bgr = frame.copy()
+            img_bgr = self.read_camera()
             bboxes = self.model.infer(img_bgr)
             log.info(f'{bboxes}')
             if not bboxes:

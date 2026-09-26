@@ -1,113 +1,131 @@
-"""Watch Astra+ color video in a browser through an SSH port forward.
-
-This standalone process does not import the chassis controller. It owns the
-camera while running, so stop it before starting the car application.
-"""
+"""Browser preview backed by CameraBroadcaster, also usable without the chassis."""
 
 import argparse
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
 import signal
 from threading import Condition, Thread
 import time
 
 import cv2
 
-from astra_camera import frame_to_bgr_image, open_color_pipeline
+from camera_tasks import SnapshotWriter
 
 
-PAGE = b'''<!doctype html><html lang="zh"><meta charset="utf-8">
+PAGE = '''<!doctype html><html lang="zh"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Astra+ camera</title>
 <style>body{margin:0;background:#111;color:#eee;font:16px sans-serif}
 main{max-width:1280px;margin:auto;padding:1rem}img{display:block;width:100%;height:auto}
-a{color:#9df}</style>
-<main><h1>Astra+ live view</h1><img src="/stream.mjpg" alt="Live camera">
-<p><a href="/snapshot.jpg" target="_blank">Open current frame</a></p></main></html>'''
+a{color:#9df}.video{position:relative}.clock{position:absolute;top:.5rem;right:.5rem;
+background:#000b;padding:.4rem .6rem;border-radius:.3rem}pre{white-space:pre-wrap;
+overflow-wrap:anywhere;background:#222;padding:.8rem}</style>
+<main><h1>Astra+ 实时预览</h1><div class="video">
+<img src="/stream.mjpg" alt="Live camera"><div class="clock" id="server-time">读取时间中…</div></div>
+<p id="frame-time">画面时间：读取中…</p>
+<p><a href="/snapshot.jpg" target="_blank">保存当前画面</a></p>
+<section id="radar" hidden><h2>雷达参数（最近一秒）</h2><pre id="radar-json"></pre></section></main>
+<script>
+async function refreshStatus() {
+  try {
+    const response = await fetch('/status.json', {cache: 'no-store'});
+    if (!response.ok) throw new Error('状态接口 ' + response.status);
+    const data = await response.json();
+    document.getElementById('server-time').textContent = '服务端时间：' + data.server_time;
+    document.getElementById('frame-time').textContent = data.camera.status === 'live'
+      ? '画面时间：' + data.camera.frame_time + '（约 ' + data.camera.age_ms + ' ms 前）'
+      : '画面状态：' + data.camera.status;
+    const radar = document.getElementById('radar');
+    radar.hidden = data.lidar === null;
+    if (data.lidar !== null) {
+      document.getElementById('radar-json').textContent = JSON.stringify(data.lidar, null, 2);
+    }
+  } catch (error) {
+    document.getElementById('server-time').textContent = '状态更新失败：' + error.message;
+    document.getElementById('frame-time').textContent = '画面状态未知';
+  }
+}
+refreshStatus();
+setInterval(refreshStatus, 1000);
+</script></html>'''.encode('utf-8')
+
+
+def preview_status(stream, lidar=None):
+    """A short status read; never copies/encodes a frame or touches a device."""
+    with stream.condition:
+        stamp = stream.stamp
+        stopped = stream.stopping
+    monotonic_now, now = time.monotonic(), time.time()
+    camera = {'status': 'waiting', 'frame_time': None, 'age_ms': None}
+    if stopped:
+        camera['status'] = 'unavailable'
+    elif stamp:
+        try:
+            stream.camera.check_fresh()
+            age = monotonic_now - stamp
+            if 0 <= age < 2:
+                camera = {'status': 'live',
+                          'frame_time': datetime.fromtimestamp(now - age).astimezone().isoformat(timespec='seconds'),
+                          'age_ms': round(age * 1000)}
+            else:
+                camera['status'] = 'stale'
+        except RuntimeError:
+            camera['status'] = 'unavailable'
+    return {'server_time': datetime.fromtimestamp(now).astimezone().isoformat(timespec='seconds'),
+            'camera': camera, 'lidar': lidar.status() if lidar is not None else None}
 
 
 class CameraStream:
-    def __init__(self, width, height, fps, quality):
-        self.width, self.height, self.fps, self.quality = width, height, fps, quality
+    """Encode the broadcaster's frames; this class never opens a camera."""
+    def __init__(self, camera, fps=10, quality=70):
+        self.camera, self.fps, self.quality = camera, fps, quality
         self.condition = Condition()
         self.jpeg = None
         self.sequence = 0
+        self.stamp = 0
         self.stopping = False
         self.error = None
-        self.thread = Thread(target=self.capture, name='astra-capture')
+        self.thread = Thread(target=self.capture, name='preview-encoder', daemon=True)
 
     def start(self):
         self.thread.start()
-        deadline = time.monotonic() + 15
-        with self.condition:
-            while self.jpeg is None and self.error is None:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    break
-                self.condition.wait(remaining)
-            if self.jpeg is None:
-                raise RuntimeError(f'Astra+ did not deliver a frame: {self.error or "timeout"}')
 
     def capture(self):
-        pipeline = None
         try:
-            from pyorbbecsdk import OBFormat
-
-            pipeline, profile = open_color_pipeline(self.width, self.height, self.fps)
-            print(f'Astra+ color profile: {profile}', flush=True)
-            last_frame = time.monotonic()
-            native_mjpg_logged = False
-            while True:
-                with self.condition:
-                    if self.stopping:
-                        break
-                frames = pipeline.wait_for_frames(200)
-                frame = frames.get_color_frame() if frames is not None else None
-                if frame is None:
-                    if time.monotonic() - last_frame > 5:
-                        raise TimeoutError('Astra+ color stream stopped for 5 seconds')
-                    continue
-                if (frame.get_format() == OBFormat.MJPG and
-                        frame.get_width() == self.width and
-                        frame.get_height() == self.height):
-                    jpeg = bytes(frame.get_data())
-                    if not jpeg.startswith(b'\xff\xd8'):
-                        raise ValueError('Astra+ MJPG frame is missing its JPEG header')
-                    if not native_mjpg_logged:
-                        print('Streaming Astra+ native MJPG without re-encoding', flush=True)
-                        native_mjpg_logged = True
-                else:
-                    image = frame_to_bgr_image(frame)
-                    if image.shape[:2] != (self.height, self.width):
-                        image = cv2.resize(image, (self.width, self.height))
+            while not self.stopping:
+                started = time.monotonic()
+                image, stamp = self.camera.read()
+                if stamp != self.stamp:
                     ok, encoded = cv2.imencode('.jpg', image,
                                                [cv2.IMWRITE_JPEG_QUALITY, self.quality])
                     if not ok:
-                        raise RuntimeError('Could not encode Astra+ frame as JPEG')
-                    jpeg = encoded.tobytes()
-                last_frame = time.monotonic()
+                        raise RuntimeError('Could not encode camera frame as JPEG')
+                    self.camera.check_fresh()
+                    with self.condition:
+                        self.jpeg, self.stamp = encoded.tobytes(), stamp
+                        self.sequence += 1
+                        self.condition.notify_all()
                 with self.condition:
-                    self.jpeg = jpeg
-                    self.sequence += 1
-                    self.condition.notify_all()
+                    self.condition.wait_for(lambda: self.stopping,
+                                            timeout=max(0, 1 / self.fps - (time.monotonic() - started)))
         except Exception as exc:
             with self.condition:
-                self.error = exc
-                self.stopping = True
+                self.error, self.stopping = exc, True
+                self.jpeg = None
                 self.condition.notify_all()
-        finally:
-            if pipeline is not None:
-                pipeline.stop()
 
     def close(self):
         with self.condition:
             self.stopping = True
             self.condition.notify_all()
-        if self.thread.is_alive():
-            self.thread.join(timeout=5)
+        if self.thread.ident is not None:
+            self.thread.join(timeout=3)
 
 
 class PreviewHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        self.connection.settimeout(3)
         if self.path == '/':
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
@@ -115,11 +133,21 @@ class PreviewHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(PAGE)
             return
+        if self.path == '/status.json':
+            payload = json.dumps(preview_status(self.server.stream, self.server.lidar),
+                                 ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(payload)))
+            self.send_header('Cache-Control', 'no-store')
+            self.end_headers()
+            self.wfile.write(payload)
+            return
         if self.path == '/snapshot.jpg':
-            with self.server.stream.condition:
-                jpeg = self.server.stream.jpeg
-            if jpeg is None:
-                self.send_error(503, 'No camera frame')
+            try:
+                _, jpeg = self.server.snapshots.request().result(timeout=5)
+            except Exception as exc:
+                self.send_error(503, f'Screenshot failed: {exc}')
                 return
             self.send_response(200)
             self.send_header('Content-Type', 'image/jpeg')
@@ -145,12 +173,15 @@ class PreviewHandler(BaseHTTPRequestHandler):
                     if stream.stopping or stream.sequence == sequence:
                         return
                     sequence, jpeg = stream.sequence, stream.jpeg
+                    stream.camera.check_fresh()
+                    if time.monotonic() - stream.stamp >= 2:
+                        return
                 self.wfile.write(b'--frame\r\nContent-Type: image/jpeg\r\n')
                 self.wfile.write(f'Content-Length: {len(jpeg)}\r\n\r\n'.encode())
                 self.wfile.write(jpeg)
                 self.wfile.write(b'\r\n')
                 self.wfile.flush()
-        except (BrokenPipeError, ConnectionResetError):
+        except (OSError, RuntimeError):
             return
 
 
@@ -158,7 +189,35 @@ class PreviewServer(ThreadingHTTPServer):
     daemon_threads = True
 
 
+class PreviewService:
+    def __init__(self, camera, snapshots, port=8765):
+        self.stream = CameraStream(camera)
+        self.server = PreviewServer(('127.0.0.1', port), PreviewHandler)
+        self.server.stream, self.server.snapshots = self.stream, snapshots
+        self.server.lidar = None
+        self.thread = Thread(target=self.server.serve_forever, name='preview-http', daemon=True)
+
+    def set_lidar(self, lidar):
+        self.server.lidar = lidar
+
+    def start(self):
+        self.stream.start()
+        self.thread.start()
+        print(f'Preview ready on 127.0.0.1:{self.server.server_port}', flush=True)
+
+    def close(self):
+        self.stream.close()
+        if self.thread.is_alive():
+            self.server.shutdown()
+            self.thread.join(timeout=3)
+        self.server.server_close()
+
+
 def main():
+    from multiprocessing import get_context
+    from src.utils.camera_broadcaster import CameraBroadcaster
+    from main import stop_process
+
     def stop_on_term(_signum, _frame):
         raise KeyboardInterrupt
 
@@ -174,22 +233,33 @@ def main():
         parser.error('port, image size and fps must be positive')
     if not 1 <= args.quality <= 100:
         parser.error('quality must be from 1 to 100')
-
-    stream = CameraStream(args.width, args.height, args.fps, args.quality)
+    camera = CameraBroadcaster(vars(args))
+    process = get_context('spawn').Process(target=camera.run)
+    snapshots = SnapshotWriter(camera)
+    preview = None
     try:
-        stream.start()
-        with PreviewServer(('127.0.0.1', args.port), PreviewHandler) as server:
-            server.stream = stream
-            server.timeout = 0.5
-            print(f'Preview ready on 127.0.0.1:{args.port}', flush=True)
-            while not stream.stopping:
-                server.handle_request()
-        if stream.error is not None:
-            raise RuntimeError('Astra+ preview stopped') from stream.error
+        process.start()
+        if not camera.wait_until_ready(process):
+            raise RuntimeError('Astra+ failed to start')
+        snapshots.start()
+        preview = PreviewService(camera, snapshots, args.port)
+        preview.stream.fps, preview.stream.quality = args.fps, args.quality
+        preview.start()
+        while process.is_alive():
+            camera.check_fresh()
+            if preview.stream.error:
+                raise RuntimeError('Preview failed') from preview.stream.error
+            time.sleep(0.1)
     except KeyboardInterrupt:
         pass
     finally:
-        stream.close()
+        if preview is not None:
+            preview.close()
+        snapshots.close()
+        camera.stop_sign.value = True
+        if process.pid is not None:
+            stop_process(process, graceful=True)
+        camera.close()
 
 
 if __name__ == '__main__':

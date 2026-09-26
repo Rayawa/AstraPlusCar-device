@@ -32,7 +32,6 @@ class Helper(BaseScene):
         if ret:
             log.error(f'{self.__class__.__name__} init failed.')
             return
-        frame = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.broadcaster.buf)
         log.info(f'{self.__class__.__name__} loop start')
         last_action = None
         try:
@@ -46,7 +45,7 @@ class Helper(BaseScene):
                     self.ctrl.execute(Stop())
                     break
                 start = time.time()
-                img_bgr = frame.copy()
+                img_bgr = self.read_camera()
                 bboxes = self.det.infer(img_bgr)
                 log.info(f'{bboxes}')
                 bboxes = sorted(bboxes, key=lambda x: x[5], reverse=True)

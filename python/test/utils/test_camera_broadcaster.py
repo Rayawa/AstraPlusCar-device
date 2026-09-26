@@ -83,7 +83,7 @@ class CameraBroadcasterTest(unittest.TestCase):
         spec = importlib.util.spec_from_file_location('camera_broadcaster_test_module', path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        module.Value = lambda kind, value: types.SimpleNamespace(value=value)
+        module.Value = lambda kind, value, **kwargs: types.SimpleNamespace(value=value)
         module.Event = threading.Event
         module.shared_memory = types.SimpleNamespace(SharedMemory=FakeSharedMemory)
         self.CameraBroadcaster = module.CameraBroadcaster

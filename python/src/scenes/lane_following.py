@@ -32,7 +32,6 @@ class LF(BaseScene):
         if ret:
             log.error(f'{self.__class__.__name__} init failed.')
             return
-        frame = np.ndarray((self.height, self.width, 3), dtype=np.uint8, buffer=self.broadcaster.buf)
         log.info(f'{self.__class__.__name__} loop start')
         if not self.camera_is_fresh():
             log.error('Camera stream stopped; refusing to start LF')
@@ -50,7 +49,7 @@ class LF(BaseScene):
                     self.ctrl.execute(Stop())
                     break
                 start = time.time()
-                img_bgr = frame.copy()
+                img_bgr = self.read_camera()
                 curr_steering_val = float(self.net.infer(img_bgr)[0])
                 log.info(f'lfnet: {curr_steering_val}')
 

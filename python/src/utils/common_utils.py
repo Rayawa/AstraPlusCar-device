@@ -7,7 +7,6 @@ import threading
 import tty
 
 import termios
-from yaml import safe_load
 
 
 # 单例类
@@ -31,20 +30,23 @@ def path_check(path: str):
 
 
 def load_yaml(config_path: str):
+    from yaml import safe_load
     path_check(config_path)
     with open(config_path, 'r') as f:
         config = safe_load(f.read())
     return config
 
 
-def getkey():
+def getkey(timeout=None):
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
     tty.setcbreak(fd)
     try:
+        if timeout is not None and not select.select([fd], [], [], timeout)[0]:
+            return None
         key = os.read(fd, 1)
         if not key:
-            return None
+            raise EOFError('Keyboard input closed')
         if key == b'\x1b':
             # Escape is also the first byte of an arrow-key sequence. Only
             # consume the following bytes when they actually arrive.
