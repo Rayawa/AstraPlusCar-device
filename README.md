@@ -1,6 +1,14 @@
 # AstraPlusCar 设备端运行手册
 
-本手册对应 `codex/camerafix-logicfix` 分支。先看[快速开始](#快速开始)，再按[功能入口](#功能入口与当前可用性)选择命令。实测设备是 Orange Pi AI Pro + Orbbec Astra+ + Slamtec 雷达，小车地址为 `root@192.168.8.204`。车载项目目录为：
+## 手机 phone 模式
+
+当前分支新增 `main.py --phone`：默认启动唯一相机、雷达和 HTTP 手动控制接口（端口 8080）。手机连小车 WLAN 后使用 `http://192.168.149.1:8080`；车端地址须以实际设备为准。按键、速度、掉头、截图、断联停车和完整接口见 [Phone API](docs/PHONE_API.md)。
+
+完成部署后，SSH 中执行 `systemctl start astra-phone` 即可退出终端，服务仍运行。首次安装须将 `python/` 部署到下文车载目录、将 `deploy/astra-phone.service` 放到 `/etc/systemd/system/` 并执行 `systemctl daemon-reload`。本服务默认不随开机自动启动。使用 `systemctl stop astra-phone` 后才能运行原 SSH manual；两者不可同时控制硬件。phone 模式需相机和雷达均就绪才能进入驾驶界面。
+
+下文原有 SSH 操作手册继续描述 manual/cmd/easy 模式。
+
+下文原 SSH 手册基于 `codex/camerafix-logicfix` 的功能整理；当前 `codex/app` 分支新增了上面的 phone 模式。先看[快速开始](#快速开始)，再按[功能入口](#功能入口与当前可用性)选择命令。实测设备是 Orange Pi AI Pro + Orbbec Astra+ + Slamtec 雷达，小车地址为 `root@192.168.8.204`。车载项目目录为：
 
 ```text
 /home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python

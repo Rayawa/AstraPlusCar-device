@@ -100,7 +100,7 @@ class MotionArbiter:
         self.scene_enabled = False
         self.sequence.clear()
         self.sequence_deadline = None
-        if command.source == 'keyboard':
+        if command.source in ('keyboard', 'phone'):
             self.cutoff = command.issued_at
             # A speed key during a timed spin must not leave an unbounded spin.
             if self.deadline is not None and self.active_motion is None:
@@ -125,6 +125,16 @@ class MotionArbiter:
 
     def _move(self, key):
         self.ctrl.execute(Stop() if self.speed == 0 else self.MOTION_ACTIONS[key](speed=self.speed))
+
+    def set_speed(self, speed):
+        """Apply an absolute phone speed through the sole chassis writer."""
+        if not isinstance(speed, int) or isinstance(speed, bool) or not 0 <= speed <= 100:
+            raise ValueError('speed must be an integer from 0 to 100')
+        if self.deadline is not None and self.active_motion is None:
+            self.stop()  # A timed turn cannot retain its old timing at another speed.
+        self.speed = speed
+        if self.active_motion is not None:
+            self._move(self.active_motion)
 
     def scene_action(self, action, issued_at):
         if not self.scene_enabled or not 0 <= self.clock() - issued_at <= 1:

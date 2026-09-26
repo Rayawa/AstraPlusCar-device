@@ -190,9 +190,9 @@ class PreviewServer(ThreadingHTTPServer):
 
 
 class PreviewService:
-    def __init__(self, camera, snapshots, port=8765):
+    def __init__(self, camera, snapshots, port=8765, host='127.0.0.1', handler=PreviewHandler):
         self.stream = CameraStream(camera)
-        self.server = PreviewServer(('127.0.0.1', port), PreviewHandler)
+        self.server = PreviewServer((host, port), handler)
         self.server.stream, self.server.snapshots = self.stream, snapshots
         self.server.lidar = None
         self.thread = Thread(target=self.server.serve_forever, name='preview-http', daemon=True)
@@ -203,7 +203,7 @@ class PreviewService:
     def start(self):
         self.stream.start()
         self.thread.start()
-        print(f'Preview ready on 127.0.0.1:{self.server.server_port}', flush=True)
+        print(f'Preview ready on {self.server.server_address[0]}:{self.server.server_port}', flush=True)
 
     def close(self):
         self.stream.close()

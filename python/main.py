@@ -3,6 +3,7 @@
 """Primary mode plus independently enabled preview, speech and lidar services."""
 from argparse import ArgumentParser
 from contextlib import ExitStack
+import fcntl
 from multiprocessing import get_context
 from queue import Empty
 import os
@@ -10,19 +11,21 @@ from pathlib import Path
 import select
 import signal
 import sys
+import time
 
 
 def parse_args(argv=None):
     from lidar_probe import DEFAULT_PORT, DEFAULT_SDK
     parser = ArgumentParser()
     modes = parser.add_mutually_exclusive_group()
-    modes.add_argument('--mode', choices=['cmd', 'voice', 'manual', 'easy'])
-    for mode in ('manual', 'cmd', 'easy'):
+    modes.add_argument('--mode', choices=['cmd', 'voice', 'manual', 'easy', 'phone'])
+    for mode in ('manual', 'cmd', 'easy', 'phone'):
         modes.add_argument('--' + mode, dest='mode', action='store_const', const=mode)
     parser.add_argument('--camera', action='store_true', help='enable browser live preview')
     parser.add_argument('--voice', action='store_true', help='enable background speech commands')
     parser.add_argument('--lidar', '--radar', action='store_true', help='enable lidar status and distances')
     parser.add_argument('--camera-port', type=int, default=8765)
+    parser.add_argument('--phone-port', type=int, default=8080)
     parser.add_argument('--capture-dir', default='capture')
     parser.add_argument('--voice-model', help='directory containing an offline Vosk model')
     parser.add_argument('--voice-device', help='optional ALSA microphone device name')
@@ -32,6 +35,8 @@ def parse_args(argv=None):
     parser.add_argument('--lidar-baudrate', type=int, default=115200)
     args = parser.parse_args(argv)
     args.mode = args.mode or 'manual'
+    if args.mode == 'phone':
+        args.camera, args.lidar = True, True
     if args.mode == 'voice':
         args.mode, args.voice = 'manual', True
     if args.voice and args.voice_model is None:
@@ -42,7 +47,7 @@ def parse_args(argv=None):
             args.voice_model = str(candidate)
     if not 0 < args.voice_move_seconds <= 5:
         parser.error('--voice-move-seconds must be greater than 0 and at most 5')
-    if not 1 <= args.camera_port <= 65535 or args.lidar_baudrate <= 0:
+    if not 1 <= args.camera_port <= 65535 or not 1 <= args.phone_port <= 65535 or args.lidar_baudrate <= 0:
         parser.error('camera port must be 1..65535 and lidar baudrate must be positive')
     return args
 
@@ -113,6 +118,7 @@ def run(args):
     scene_pending = False
     arbiter = None
     services = []
+    phone = None
 
     def stop_scene():
         nonlocal scene_process, scene_info
@@ -132,6 +138,12 @@ def run(args):
                 log.exception('Failed to stop the chassis')
 
     with ExitStack() as cleanup:
+        lock_file = open('/tmp/astrapluscar-main.lock', 'w')
+        cleanup.callback(lock_file.close)
+        try:
+            fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise RuntimeError('Another AstraPlusCar main program owns the hardware') from exc
         camera = CameraBroadcaster(CAMERA_INFO)
         cleanup.callback(camera.close)
         camera_process = context.Process(target=camera.run, name='camera-capture')
@@ -147,7 +159,7 @@ def run(args):
         snapshots = SnapshotWriter(camera, args.capture_dir, log.info)
         cleanup.callback(snapshots.close)
         snapshots.start()
-        if args.camera:
+        if args.camera and args.mode != 'phone':
             from camera_preview import PreviewService
             preview = PreviewService(camera, snapshots, args.camera_port)
             cleanup.callback(preview.close)
@@ -165,7 +177,7 @@ def run(args):
             cleanup.callback(lidar.close)
             lidar.start()
             services.append(lidar)
-            if args.camera:
+            if args.camera and args.mode != 'phone':
                 preview.set_lidar(lidar)
 
         # Only this process opens the chassis, after optional services are ready.
@@ -175,6 +187,14 @@ def run(args):
         cleanup.callback(safe_stop)  # LIFO: stop motors before waiting for any worker.
         safe_stop()
         arbiter = MotionArbiter(ctrl, snapshots.request, args.voice_move_seconds)
+        if args.mode == 'phone':
+            from phone_mode import PhoneControl, PhoneService
+            phone = PhoneControl(inbox)
+            preview = PhoneService(camera, snapshots, lidar, phone, args.phone_port)
+            cleanup.callback(preview.close)
+            preview.start()
+            services.append(preview.stream)
+            cleanup.callback(safe_stop)  # Stop immediately on exit, before closing the HTTP server.
         action_queue, scene_queue = context.Queue(maxsize=8), context.Queue(maxsize=1)
         # Queues are consumed before closing; no parent feeder is left waiting.
         def close_queues():
@@ -215,7 +235,10 @@ def run(args):
                 if autonomous and args.mode == 'easy':
                     raise RuntimeError('Helper scene exited')
                 log.info('Scene exited' + ('; chassis stopped' if autonomous else '; human control active'))
-            if args.mode == 'cmd':
+            if args.mode == 'phone':
+                phone.tick(arbiter)
+                time.sleep(0.02)
+            elif args.mode == 'cmd':
                 if select.select([sys.stdin], [], [], 0.02)[0]:
                     line = sys.stdin.readline()
                     if not line:
