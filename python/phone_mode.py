@@ -240,6 +240,9 @@ class PhoneHandler(PreviewHandler):
 class PhoneService(PreviewService):
     def __init__(self, camera, snapshots, lidar, control, port=8080, host='0.0.0.0'):
         super().__init__(camera, snapshots, port=port, host=host, handler=PhoneHandler)
+        self.stream.fps = 30
+        self.stream.jpeg_scale = 2
+        self.stream.quality = 75
         self.server.lidar = lidar
         self.server.control = control
         self.server.capture_dir = Path(snapshots.directory)

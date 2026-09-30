@@ -49,6 +49,26 @@ def open_color_pipeline(width, height, fps):
     return pipeline, profile
 
 
+def prefer_color_frame_rate(pipeline):
+    """Keep automatic exposure, but prevent it from reducing driving FPS."""
+    from pyorbbecsdk import OBPropertyID, OBPermissionType
+    device = pipeline.get_device()
+    prop = OBPropertyID.OB_PROP_COLOR_AUTO_EXPOSURE_PRIORITY_INT
+    if not (device.is_property_supported(prop, OBPermissionType.PERMISSION_READ) and
+            device.is_property_supported(prop, OBPermissionType.PERMISSION_WRITE)):
+        return None
+    previous = device.get_int_property(prop)
+    device.set_int_property(prop, 0)
+    return previous
+
+
+def restore_color_exposure_priority(pipeline, previous):
+    if previous is not None:
+        from pyorbbecsdk import OBPropertyID
+        pipeline.get_device().set_int_property(
+            OBPropertyID.OB_PROP_COLOR_AUTO_EXPOSURE_PRIORITY_INT, previous)
+
+
 def frame_to_bgr_image(frame):
     from pyorbbecsdk import OBFormat
 
@@ -76,3 +96,20 @@ def frame_to_bgr_image(frame):
     if color_format in yuv420_formats:
         return cv2.cvtColor(data.reshape(height * 3 // 2, width), yuv420_formats[color_format])
     raise ValueError(f'Unsupported Astra+ color format: {color_format}')
+
+
+def frame_to_jpeg(frame):
+    """Forward camera MJPG without a decode/encode round trip for driving."""
+    from pyorbbecsdk import OBFormat
+    if frame.get_format() == OBFormat.MJPG:
+        jpeg = np.asanyarray(frame.get_data()).tobytes()
+        end = jpeg.rfind(b'\xff\xd9')
+        if not jpeg.startswith(b'\xff\xd8') or end < 0:
+            raise ValueError('Astra+ delivered an incomplete MJPG frame')
+        # Some SDK frames include a trailing alignment byte after JPEG EOI.
+        return jpeg[:end + 2]
+    image = frame_to_bgr_image(frame)
+    ok, encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 70])
+    if not ok:
+        raise RuntimeError('Could not encode Astra+ color frame')
+    return encoded.tobytes()

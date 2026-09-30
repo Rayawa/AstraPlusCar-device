@@ -5,10 +5,12 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import signal
+import socket
 from threading import Condition, Thread
 import time
 
 import cv2
+import numpy as np
 
 from camera_tasks import SnapshotWriter
 
@@ -80,6 +82,7 @@ class CameraStream:
     """Encode the broadcaster's frames; this class never opens a camera."""
     def __init__(self, camera, fps=10, quality=70):
         self.camera, self.fps, self.quality = camera, fps, quality
+        self.jpeg_scale = 1
         self.condition = Condition()
         self.jpeg = None
         self.sequence = 0
@@ -93,22 +96,52 @@ class CameraStream:
 
     def capture(self):
         try:
+            next_encode = time.monotonic()
             while not self.stopping:
-                started = time.monotonic()
-                image, stamp = self.camera.read()
-                if stamp != self.stamp:
-                    ok, encoded = cv2.imencode('.jpg', image,
-                                               [cv2.IMWRITE_JPEG_QUALITY, self.quality])
-                    if not ok:
-                        raise RuntimeError('Could not encode camera frame as JPEG')
-                    self.camera.check_fresh()
-                    with self.condition:
-                        self.jpeg, self.stamp = encoded.tobytes(), stamp
-                        self.sequence += 1
-                        self.condition.notify_all()
                 with self.condition:
                     self.condition.wait_for(lambda: self.stopping,
-                                            timeout=max(0, 1 / self.fps - (time.monotonic() - started)))
+                                            timeout=max(0, next_encode - time.monotonic()))
+                if self.stopping:
+                    break
+                wait_for_frame = getattr(self.camera, 'wait_for_frame', None)
+                if wait_for_frame is not None:
+                    wait_for_frame(self.stamp)
+                passthrough = getattr(self.camera, 'jpeg_only', False) is True
+                if passthrough:
+                    jpeg, stamp = self.camera.read_jpeg()
+                else:
+                    image, stamp = self.camera.read()
+                if stamp != self.stamp:
+                    if passthrough and self.jpeg_scale == 2:
+                        # libjpeg's reduced IDCT avoids a full 720p decode and
+                        # resize. Keep full source frames for saved captures.
+                        image = cv2.imdecode(np.frombuffer(jpeg, dtype=np.uint8),
+                                             cv2.IMREAD_REDUCED_COLOR_2)
+                        if image is None:
+                            raise RuntimeError('Could not decode driving preview')
+                        ok, encoded = cv2.imencode('.jpg', image,
+                                                   [cv2.IMWRITE_JPEG_QUALITY, self.quality])
+                        if not ok:
+                            raise RuntimeError('Could not encode driving preview')
+                        jpeg = encoded.tobytes()
+                    if not passthrough:
+                        ok, encoded = cv2.imencode('.jpg', image,
+                                                   [cv2.IMWRITE_JPEG_QUALITY, self.quality])
+                        if not ok:
+                            raise RuntimeError('Could not encode camera frame as JPEG')
+                        jpeg = encoded.tobytes()
+                    self.camera.check_fresh()
+                    with self.condition:
+                        self.jpeg, self.stamp = jpeg, stamp
+                        self.sequence += 1
+                        self.condition.notify_all()
+                    # Keep an absolute cadence. A late wakeup must not push
+                    # every later frame back or impose a second camera timer.
+                    next_encode = (time.monotonic() if passthrough else
+                                   max(next_encode + 1 / self.fps, time.monotonic()))
+                else:
+                    with self.condition:
+                        self.condition.wait_for(lambda: self.stopping, timeout=0.005)
         except Exception as exc:
             with self.condition:
                 self.error, self.stopping = exc, True
@@ -159,6 +192,14 @@ class PreviewHandler(BaseHTTPRequestHandler):
         if self.path != '/stream.mjpg':
             self.send_error(404)
             return
+        # Keep the TCP queue short so a slow receiver skips frames rather than
+        # watching a backlog. Send each multipart frame in a single write.
+        self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.connection.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 128 * 1024)
+        # Tolerate brief LAN stalls without closing the stream before the
+        # client's 2-second frame watchdog. Keep slow writes bounded; motion
+        # leases are enforced independently by the phone control watchdog.
+        self.connection.settimeout(1.5)
         self.send_response(200)
         self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=frame')
         self.send_header('Cache-Control', 'no-store')
@@ -176,12 +217,14 @@ class PreviewHandler(BaseHTTPRequestHandler):
                     stream.camera.check_fresh()
                     if time.monotonic() - stream.stamp >= 2:
                         return
-                self.wfile.write(b'--frame\r\nContent-Type: image/jpeg\r\n')
-                self.wfile.write(f'Content-Length: {len(jpeg)}\r\n\r\n'.encode())
-                self.wfile.write(jpeg)
-                self.wfile.write(b'\r\n')
+                header = (b'--frame\r\nContent-Type: image/jpeg\r\n' +
+                          f'Content-Length: {len(jpeg)}\r\nX-Frame-Sequence: {sequence}\r\n\r\n'.encode())
+                self.wfile.write(header + jpeg + b'\r\n')
                 self.wfile.flush()
-        except (OSError, RuntimeError):
+        except (OSError, RuntimeError) as exc:
+            from src.utils.logger import logger_instance as log
+            log.warning('MJPEG stream closed for %s at frame %s: %s',
+                        self.client_address[0], sequence, exc)
             return
 
 

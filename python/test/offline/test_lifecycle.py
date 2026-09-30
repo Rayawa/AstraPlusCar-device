@@ -80,6 +80,8 @@ class LifecycleTest(unittest.TestCase):
                                           log=Mock()))
             stack.enter_context(patch.object(main, 'get_context', return_value=context))
             stack.enter_context(patch.object(main, 'check_features'))
+            # Simulated hardware must not contend with a running vehicle service.
+            stack.enter_context(patch('main.fcntl.flock'))
             stack.enter_context(patch('camera_tasks.SnapshotWriter', Service))
             stack.enter_context(patch('camera_preview.PreviewService', Service))
             stack.enter_context(patch('voice_control.VoiceService', Service))
@@ -130,18 +132,30 @@ class LifecycleTest(unittest.TestCase):
 
 
 class LidarTest(unittest.TestCase):
+    def test_sensor_relative_sectors_keep_all_directions_distinct(self):
+        import lidar_probe
+        points = [lidar_probe.ScanPoint(angle, distance, 10) for angle, distance in
+                  ((359, 450), (28, 380), (91, 700), (179, 920), (271, 610), (45, 100))]
+        self.assertEqual(lidar_probe.sector_distances(points), {
+            'front_nearest_mm': 380, 'sector_90_mm': 700,
+            'sector_180_mm': 920, 'sector_270_mm': 610})
+
     def test_status_clears_expired_ranges(self):
         import lidar_probe
         service = lidar_probe.LidarService('sdk', 'port', 115200, report=lambda _: None)
         self.assertEqual(service.status()['status'], 'waiting')
         service.publish(dict(observed_at='2026-09-26T12:00:00+08:00', serial='ABC',
                              health='OK', status='scanning', points=10,
-                             nearest_mm=200, front_nearest_mm=300))
+                             nearest_mm=200, front_nearest_mm=300,
+                             sector_90_mm=400, sector_180_mm=500, sector_270_mm=600))
         self.assertEqual(service.status()['front_nearest_mm'], 300)
         service.updated_at = time.monotonic() - 3
         stale = service.status()
         self.assertEqual(stale['status'], 'stale')
         self.assertIsNone(stale['nearest_mm'])
+        self.assertIsNone(stale['sector_90_mm'])
+        self.assertIsNone(stale['sector_180_mm'])
+        self.assertIsNone(stale['sector_270_mm'])
         service.error = RuntimeError('disconnected')
         self.assertEqual(service.status()['status'], 'error')
 
@@ -195,6 +209,7 @@ class LidarTest(unittest.TestCase):
             self.assertEqual(reports[0]['status'], 'scanning')
             self.assertEqual(reports[0]['nearest_mm'], 321)
             self.assertEqual(reports[0]['front_nearest_mm'], 321)
+            self.assertIsNone(reports[0]['sector_180_mm'])
         finally:
             reader.close()
             os.close(write_fd)

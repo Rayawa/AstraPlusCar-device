@@ -39,6 +39,21 @@ def parse_scan_point(line):
     return point if point.distance_mm > 0 and point.quality > 0 else None
 
 
+SECTORS = {'front_nearest_mm': 0, 'sector_90_mm': 90,
+           'sector_180_mm': 180, 'sector_270_mm': 270}
+
+
+def sector_distances(points):
+    """Nearest millimeters within ±30° of each sensor-relative bearing."""
+    ranges = {name: None for name in SECTORS}
+    for point in points:
+        for name, bearing in SECTORS.items():
+            if abs((point.angle_degrees - bearing + 180) % 360 - 180) <= 30:
+                previous = ranges[name]
+                ranges[name] = min(previous, point.distance_mm) if previous is not None else point.distance_mm
+    return ranges
+
+
 def check_lidar_ready(sdk_path=DEFAULT_SDK, port=DEFAULT_PORT):
     errors = []
     if not Path(sdk_path).is_file() or not os.access(sdk_path, os.X_OK):
@@ -60,7 +75,7 @@ def collect_scan(sdk_path=DEFAULT_SDK, port=DEFAULT_PORT, baudrate=115200, secon
                                start_new_session=True)
     summary = {'health': 'unknown', 'serial': None, 'raw_points': 0,
                'nonzero_distance_points': 0, 'points': 0,
-               'nearest_mm': None, 'front_nearest_mm': None}
+               'nearest_mm': None, **{name: None for name in SECTORS}}
     output_tail, pending = [], b''
     started = last_report = time.monotonic()
     last_point = started
@@ -70,12 +85,11 @@ def collect_scan(sdk_path=DEFAULT_SDK, port=DEFAULT_PORT, baudrate=115200, secon
         while time.monotonic() < deadline and not (stop_event and stop_event.is_set()):
             now = time.monotonic()
             if report and now - last_report >= 1:
-                front = [p.distance_mm for p in window if p.angle_degrees <= 30 or p.angle_degrees >= 330]
                 report(dict(observed_at=datetime.now().astimezone().isoformat(timespec='seconds'),
                             serial=summary['serial'], health=summary['health'],
                             status='scanning' if window else 'waiting',
                             points=len(window), nearest_mm=min((p.distance_mm for p in window), default=None),
-                            front_nearest_mm=min(front, default=None)))
+                            **sector_distances(window)))
                 window.clear()
                 last_report = now
             if seconds is None and now - last_point > 5:
@@ -113,9 +127,10 @@ def collect_scan(sdk_path=DEFAULT_SDK, port=DEFAULT_PORT, baudrate=115200, secon
                 summary['points'] += 1
                 nearest = summary['nearest_mm']
                 summary['nearest_mm'] = min(nearest, point.distance_mm) if nearest else point.distance_mm
-                if point.angle_degrees <= 30 or point.angle_degrees >= 330:
-                    nearest = summary['front_nearest_mm']
-                    summary['front_nearest_mm'] = min(nearest, point.distance_mm) if nearest else point.distance_mm
+                for name, distance in sector_distances((point,)).items():
+                    if distance is not None:
+                        nearest = summary[name]
+                        summary[name] = min(nearest, distance) if nearest is not None else distance
     finally:
         if process.poll() is None:
             try:
@@ -158,17 +173,17 @@ class LidarService:
             result = dict(self.latest) if self.latest is not None else {
                 'observed_at': None, 'serial': None, 'health': 'unknown',
                 'status': 'waiting', 'points': 0, 'nearest_mm': None,
-                'front_nearest_mm': None}
+                **{name: None for name in SECTORS}}
             updated = self.updated_at
         if self.error is not None:
             result.update(status='error', error=str(self.error), points=0,
-                          nearest_mm=None, front_nearest_mm=None)
+                          nearest_mm=None, **{name: None for name in SECTORS})
         elif updated is not None:
             age = max(0, time.monotonic() - updated)
             result['age_seconds'] = round(age, 2)
             if age >= 2.5:
                 result.update(status='stale', points=0,
-                              nearest_mm=None, front_nearest_mm=None)
+                              nearest_mm=None, **{name: None for name in SECTORS})
         return result
 
     def run(self):

@@ -144,7 +144,12 @@ def run(args):
             fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
             raise RuntimeError('Another AstraPlusCar main program owns the hardware') from exc
-        camera = CameraBroadcaster(CAMERA_INFO)
+        # Phone driving needs a 30 Hz feed without the cost of 1080p JPEGs.
+        # Keep the AI/manual camera configuration unchanged.
+        camera_info = dict(CAMERA_INFO)
+        if args.mode == 'phone':
+            camera_info.update(width=1280, height=720, fps=30, jpeg_only=True)
+        camera = CameraBroadcaster(camera_info)
         cleanup.callback(camera.close)
         camera_process = context.Process(target=camera.run, name='camera-capture')
 

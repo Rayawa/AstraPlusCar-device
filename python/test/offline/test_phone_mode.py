@@ -27,10 +27,29 @@ class PhoneModeTest(unittest.TestCase):
                                     'commandId': command_id, **extra}, self.arbiter)
 
     def test_phone_defaults_enable_camera_and_lidar(self):
-        args = parse_args(['--phone'])
+        args = parse_args(['--mode', 'phone'])
         self.assertEqual(args.mode, 'phone')
         self.assertTrue(args.camera)
         self.assertTrue(args.lidar)
+
+    def test_speed_during_motion_keeps_motion_id_and_original_lease(self):
+        self.request('command', 1, 'move', key='w')
+        deadline = self.phone.lease_until
+        self.request('speed', 2, 'speed', speed=65)
+        self.assertIsInstance(self.chassis.execute.call_args.args[0], Advance)
+        self.assertEqual(self.chassis.execute.call_args.args[0].speed, 65)
+        self.assertEqual(self.phone.active_id, 'move')
+        self.assertEqual(self.phone.lease_until, deadline)
+        self.request('renew', 3, 'move')
+        self.assertGreater(self.phone.lease_until, deadline)
+        self.request('speed', 3, 'zero', speed=0)
+        self.assertIsInstance(self.chassis.execute.call_args.args[0], Stop)
+        self.request('speed', 4, 'resume', speed=20)
+        self.assertEqual(self.chassis.execute.call_args.args[0].speed, 20)
+        self.request('stop', 5, 'stop')
+        with self.assertRaises(PhoneError):
+            self.request('speed', 6, 'late', speed=80)
+        self.assertIsInstance(self.chassis.execute.call_args.args[0], Stop)
 
     def test_motion_renewal_does_not_repeat_action_and_timeout_stops(self):
         self.request('command', 1, 'one', key='w')
