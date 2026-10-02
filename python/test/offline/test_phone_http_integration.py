@@ -6,6 +6,7 @@ import json
 import time
 import unittest
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 import numpy as np
 
@@ -76,13 +77,50 @@ class PhoneHttpIntegrationTest(unittest.TestCase):
                 deadline = time.monotonic() + 2
                 while service.stream.sequence == 0 and time.monotonic() < deadline:
                     time.sleep(0.02)
-                self.assertTrue(request('/api/v1/camera/frame.jpg').startswith(b'\xff\xd8'))
+                with urlopen(base + '/api/v1/camera/frame.jpg', timeout=3) as frame_response:
+                    self.assertTrue(frame_response.read().startswith(b'\xff\xd8'))
+                    self.assertGreater(int(frame_response.headers['X-Frame-Sequence']), 0)
                 stream_response = urlopen(base + '/api/v1/camera/stream.mjpg', timeout=3)
                 try:
                     self.assertIn('multipart/x-mixed-replace', stream_response.headers['Content-Type'])
                     self.assertIn(b'Content-Type: image/jpeg', stream_response.read(256))
                 finally:
                     stream_response.close()
+                for invalid in ('0', '31', 'abc', '', '15&fps=20'):
+                    with self.assertRaises(HTTPError) as error:
+                        urlopen(base + '/api/v1/camera/stream.mjpg?fps=' + invalid, timeout=3)
+                    self.assertEqual(error.exception.code, 400)
+                with urlopen(base + '/api/v1/camera/stream.mjpg?fps=10', timeout=3) as limited:
+                    self.assertEqual(limited.headers['X-Stream-Fps'], '10')
+                    received, sequences = [], []
+                    for _ in range(5):
+                        self.assertEqual(limited.readline(), b'--frame\r\n')
+                        headers = {}
+                        while True:
+                            line = limited.readline()
+                            if line == b'\r\n':
+                                break
+                            key, value = line.decode('ascii').split(':', 1)
+                            headers[key.lower()] = value.strip()
+                        jpeg = limited.read(int(headers['content-length']))
+                        self.assertTrue(jpeg.startswith(b'\xff\xd8'))
+                        self.assertTrue(jpeg.endswith(b'\xff\xd9'))
+                        self.assertEqual(limited.read(2), b'\r\n')
+                        received.append(time.monotonic())
+                        sequences.append(int(headers['x-frame-sequence']))
+                    self.assertGreaterEqual(received[-1] - received[0], .35)
+                    self.assertGreater(sequences[-1] - sequences[0], 4,
+                                       'slow stream skips intermediate frames, never queues them')
+                    self.assertEqual(service.stream.fps, 30, 'camera publication cadence is unchanged')
+                with urlopen(base + '/api/v1/camera/stream.mjpg?fps=30&frames=3', timeout=3) as segment:
+                    self.assertEqual(segment.headers['X-Stream-Frames'], '3')
+                    body = segment.read()
+                    self.assertEqual(body.count(b'--frame\r\n'), 3,
+                                     'a segment closes normally after exactly the requested frame count')
+                for invalid in ('0', '31', 'abc', '', '3&frames=4'):
+                    with self.assertRaises(HTTPError) as error:
+                        urlopen(base + '/api/v1/camera/stream.mjpg?frames=' + invalid, timeout=3)
+                    self.assertEqual(error.exception.code, 400)
                 capture = json.loads(request('/api/v1/camera/captures', {}))
                 capture_id = capture['captureId']
                 self.assertTrue(Path(directory, capture_id).is_file())

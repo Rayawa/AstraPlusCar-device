@@ -4,6 +4,7 @@ from pathlib import Path
 from queue import Empty, Full, Queue
 from threading import Lock
 import json
+import socket
 import time
 from uuid import uuid4
 
@@ -173,8 +174,13 @@ class PhoneHandler(PreviewHandler):
             payload.update(self.server.control.status())
             self._json(200, payload)
         elif path == '/api/v1/camera/frame.jpg':
+            # Headers and JPEG are written separately; disable Nagle as on the
+            # MJPEG path so delayed ACKs do not hold a small JPEG tail.
+            self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.connection.settimeout(1.5)
             with self.server.stream.condition:
                 jpeg, stamp = self.server.stream.jpeg, self.server.stream.stamp
+                sequence = self.server.stream.sequence
             if jpeg is None or time.monotonic() - stamp >= 2:
                 self._json(503, {'ok': False, 'code': 'camera_not_ready', 'message': 'No fresh frame'})
                 return
@@ -182,6 +188,7 @@ class PhoneHandler(PreviewHandler):
             self.send_header('Content-Type', 'image/jpeg')
             self.send_header('Content-Length', str(len(jpeg)))
             self.send_header('Cache-Control', 'no-store')
+            self.send_header('X-Frame-Sequence', str(sequence))
             self.end_headers()
             self.wfile.write(jpeg)
         elif path.startswith('/api/v1/camera/captures/'):
@@ -200,7 +207,10 @@ class PhoneHandler(PreviewHandler):
             self.end_headers()
             self.wfile.write(jpeg)
         elif path == '/api/v1/camera/stream.mjpg':
-            self.path = '/stream.mjpg'
+            # Preserve the optional per-client video rate; controls and camera
+            # capture cadence are independent of this transport setting.
+            query = self.path.partition('?')[2]
+            self.path = '/stream.mjpg' + ('?' + query if query else '')
             super().do_GET()
         else:
             super().do_GET()

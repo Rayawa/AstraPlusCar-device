@@ -139,6 +139,13 @@ class PhoneHttpTest(unittest.TestCase):
             handler.do_GET()
             handler.send_response.assert_called_with(400)
 
+    def test_stream_rate_query_reaches_preview_transport(self):
+        handler = self.handler('/api/v1/camera/stream.mjpg?fps=15')
+        with patch('camera_preview.PreviewHandler.do_GET') as preview:
+            handler.do_GET()
+        preview.assert_called_once_with()
+        self.assertEqual(handler.path, '/stream.mjpg?fps=15')
+
 
 if __name__ == '__main__':
     unittest.main()

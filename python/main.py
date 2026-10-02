@@ -303,6 +303,18 @@ def main():
         run(args)
     except (KeyboardInterrupt, EOFError):
         pass
+    except Exception:
+        # Keep the original failure/exit status, but also persist the traceback
+        # in the runtime log when that logger has already been initialized.
+        # stderr/journald may be unavailable on the vehicle image.
+        utils = sys.modules.get('src.utils')
+        logger = utils.__dict__.get('log') if utils is not None else None
+        if logger is not None:
+            try:
+                logger.exception('AstraPlusCar runtime failed')
+            except Exception:
+                pass
+        raise
     finally:
         for signum, handler in previous.items():
             signal.signal(signum, handler)

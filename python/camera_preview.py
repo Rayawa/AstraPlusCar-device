@@ -8,6 +8,7 @@ import signal
 import socket
 from threading import Condition, Thread
 import time
+from urllib.parse import parse_qs, urlsplit
 
 import cv2
 import numpy as np
@@ -159,6 +160,8 @@ class CameraStream:
 class PreviewHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.connection.settimeout(3)
+        route = urlsplit(self.path)
+        self.path = route.path
         if self.path == '/':
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
@@ -192,6 +195,21 @@ class PreviewHandler(BaseHTTPRequestHandler):
         if self.path != '/stream.mjpg':
             self.send_error(404)
             return
+        # Rate-limit each receiver independently, always selecting the newest
+        # frame after waiting. The shared camera and full-resolution captures
+        # keep their original cadence.
+        try:
+            values = parse_qs(route.query, keep_blank_values=True).get('fps', [])
+            fps = int(values[0]) if len(values) == 1 else self.server.stream.fps
+            if len(values) > 1 or (values and not 1 <= fps <= 30):
+                raise ValueError('fps out of range')
+            limits = parse_qs(route.query, keep_blank_values=True).get('frames', [])
+            limit = int(limits[0]) if len(limits) == 1 else 0
+            if len(limits) > 1 or (limits and not 1 <= limit <= 30):
+                raise ValueError('frames out of range')
+        except ValueError:
+            self.send_error(400, 'fps and frames must be integers from 1 to 30')
+            return
         # Keep the TCP queue short so a slow receiver skips frames rather than
         # watching a backlog. Send each multipart frame in a single write.
         self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -203,12 +221,19 @@ class PreviewHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=frame')
         self.send_header('Cache-Control', 'no-store')
+        self.send_header('X-Stream-Fps', str(fps))
+        if limit:
+            self.send_header('X-Stream-Frames', str(limit))
         self.end_headers()
         sequence = 0
+        sent = 0
+        next_send = time.monotonic()
         try:
             while True:
                 with self.server.stream.condition:
                     stream = self.server.stream
+                    stream.condition.wait_for(lambda: stream.stopping,
+                                              timeout=max(0, next_send - time.monotonic()))
                     stream.condition.wait_for(
                         lambda: stream.sequence > sequence or stream.stopping, timeout=5)
                     if stream.stopping or stream.sequence == sequence:
@@ -221,6 +246,10 @@ class PreviewHandler(BaseHTTPRequestHandler):
                           f'Content-Length: {len(jpeg)}\r\nX-Frame-Sequence: {sequence}\r\n\r\n'.encode())
                 self.wfile.write(header + jpeg + b'\r\n')
                 self.wfile.flush()
+                sent += 1
+                if limit and sent >= limit:
+                    return
+                next_send = max(next_send + 1 / fps, time.monotonic())
         except (OSError, RuntimeError) as exc:
             from src.utils.logger import logger_instance as log
             log.warning('MJPEG stream closed for %s at frame %s: %s',

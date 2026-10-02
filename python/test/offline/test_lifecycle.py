@@ -23,6 +23,30 @@ class CloseableQueue(Queue):
 
 
 class LifecycleTest(unittest.TestCase):
+    def test_main_preserves_failure_and_records_traceback(self):
+        failure = RuntimeError('camera became stale')
+        logger = Mock()
+        with patch.object(main, 'parse_args', return_value=types.SimpleNamespace()), \
+                patch.object(main, 'run', side_effect=failure), \
+                patch.dict(utils.__dict__, log=logger), \
+                patch.object(main.signal, 'signal', return_value=signal.SIG_DFL):
+            with self.assertRaises(RuntimeError) as raised:
+                main.main()
+        self.assertIs(raised.exception, failure)
+        logger.exception.assert_called_once()
+
+    def test_logging_failure_does_not_replace_runtime_failure(self):
+        failure = RuntimeError('camera process exited')
+        logger = Mock()
+        logger.exception.side_effect = OSError('log storage unavailable')
+        with patch.object(main, 'parse_args', return_value=types.SimpleNamespace()), \
+                patch.object(main, 'run', side_effect=failure), \
+                patch.dict(utils.__dict__, log=logger), \
+                patch.object(main.signal, 'signal', return_value=signal.SIG_DFL):
+            with self.assertRaises(RuntimeError) as raised:
+                main.main()
+        self.assertIs(raised.exception, failure)
+
     def exercise(self, flags, failure=None, mode='manual', service_failure=False):
         events = []
         camera = Mock()
