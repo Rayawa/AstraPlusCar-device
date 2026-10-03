@@ -1,0 +1,177 @@
+{
+  "direct_video": {
+    "start": "10:38:44.050",
+    "end": "10:45:05.751",
+    "duration_s": 381.701,
+    "first_report": "10:38:45.062",
+    "last_report": "10:45:05.751",
+    "reports": 375,
+    "median_fps": 29.8,
+    "mean_report_fps": 29.72,
+    "minimum_report_fps": 24.5,
+    "maximum_report_fps": 31.7,
+    "maximum_frame_gap_ms": 242,
+    "p95_report_gap_ms": 91,
+    "reports_gap_over_1000ms": 0,
+    "max_errors_in_one_report": 1,
+    "total_segment_errors": 1,
+    "stops": [],
+    "preview_starts": 1
+  },
+  "gl_video": {
+    "start": "10:57:12.152",
+    "end": "11:03:33.853",
+    "duration_s": 381.701,
+    "first_report": "10:57:13.163",
+    "last_report": "11:03:33.554",
+    "reports": 364,
+    "median_fps": 29.7,
+    "mean_report_fps": 28.86,
+    "minimum_report_fps": 0.5,
+    "maximum_report_fps": 31.9,
+    "maximum_frame_gap_ms": 1985,
+    "p95_report_gap_ms": 137,
+    "reports_gap_over_1000ms": 10,
+    "max_errors_in_one_report": 5,
+    "total_segment_errors": 54,
+    "stops": [],
+    "preview_starts": 1
+  },
+  "gl_video_full": {
+    "start": "10:57:12.152",
+    "end": "11:08:30.365",
+    "duration_s": 678.213,
+    "first_report": "10:57:13.163",
+    "last_report": "11:08:30.365",
+    "reports": 641,
+    "median_fps": 29.6,
+    "mean_report_fps": 28.6,
+    "minimum_report_fps": 0.5,
+    "maximum_report_fps": 32.0,
+    "maximum_frame_gap_ms": 1985,
+    "p95_report_gap_ms": 194,
+    "reports_gap_over_1000ms": 18,
+    "max_errors_in_one_report": 6,
+    "total_segment_errors": 100,
+    "stops": [
+      "10-03 11:05:08.800 57159 57159 W A00000/top.rayawa.astra_plus_car/AstraCamera: preview stopped: 视频串流超时; bytes=431239838 dataAge=2322 decoding=false duration=476647 tickGap=502"
+    ],
+    "preview_starts": 2
+  },
+  "direct_idle_ping": {
+    "transmitted": 600,
+    "received": 600,
+    "packet_loss_percent": 0.0,
+    "median_ms": 21.0,
+    "max_ms": 131.0,
+    "samples_over_200ms": 0
+  },
+  "direct_video_ping": {
+    "transmitted": 1500,
+    "received": 1500,
+    "packet_loss_percent": 0.0,
+    "median_ms": 5.0,
+    "max_ms": 170.0,
+    "samples_over_200ms": 0
+  },
+  "car_to_router_wired_ping": {
+    "transmitted": 60,
+    "received": 60,
+    "packet_loss_percent": 0.0,
+    "median_ms": 0.4525,
+    "max_ms": 0.565,
+    "samples_over_200ms": 0
+  },
+  "gl_car_ping": {
+    "transmitted": 1500,
+    "received": 1464,
+    "packet_loss_percent": 2.4,
+    "median_ms": 14.0,
+    "max_ms": 871.0,
+    "samples_over_200ms": 35
+  },
+  "gl_router_ping": {
+    "transmitted": 1500,
+    "received": 1464,
+    "packet_loss_percent": 2.4,
+    "median_ms": 23.0,
+    "max_ms": 880.0,
+    "samples_over_200ms": 36
+  },
+  "gl_loaded_car_ping": {
+    "transmitted": 1500,
+    "received": 1442,
+    "packet_loss_percent": 3.87,
+    "median_ms": 7.0,
+    "max_ms": 1769.0,
+    "samples_over_200ms": 35
+  },
+  "gl_loaded_router_ping": {
+    "transmitted": 1500,
+    "received": 1462,
+    "packet_loss_percent": 2.53,
+    "median_ms": 7.0,
+    "max_ms": 1778.0,
+    "samples_over_200ms": 37
+  },
+  "metadata": {
+    "date": "2026-10-03",
+    "timezone": "Asia/Shanghai",
+    "app_bundle": "top.rayawa.astra_plus_car",
+    "app_pid_during_comparison": 57159,
+    "stream_parameters": {
+      "fps": 30,
+      "frames": 12,
+      "jpeg_width": 640,
+      "jpeg_height": 360
+    },
+    "native_hotspot": {
+      "ssid": "WSZN-2BFE2915",
+      "frequency_mhz": 5180,
+      "endpoint": "http://192.168.149.1:8080",
+      "phone_rssi_dbm": [
+        -41,
+        -44
+      ],
+      "phone_link_mbps": [
+        65,
+        72
+      ]
+    },
+    "external_hotspot": {
+      "ssid": "GL-MT300N-V2-c37",
+      "frequency_mhz": 2437,
+      "endpoint": "http://192.168.8.204:8080",
+      "phone_rssi_dbm": [
+        -27,
+        -31
+      ],
+      "phone_link_mbps": [
+        130
+      ]
+    },
+    "server_sha256": {
+      "camera_preview.py": "c725f5a883c709c2a3b222f758beca202011435608000a4bbdb19dbd06535ebf",
+      "phone_mode.py": "3f0eb3b96915d1cfb446b65d4ee5ba0a327f24773098e9ee82635a943c2553e0"
+    },
+    "camera_service_failure_between_windows": {
+      "device_timestamp": "2024-12-26 16:47:44",
+      "exception": "RuntimeError: Camera unavailable or frame expired; refusing stale image",
+      "location": "main.py:229 -> camera_broadcaster.py:132 -> camera_broadcaster.py:153",
+      "old_pid": 6658,
+      "new_pid": 15061,
+      "NRestarts_last_successfully_read": 1
+    },
+    "excluded_switch_event": "10:45:08.131 preview watchdog during deliberate end-of-test entry to WLAN settings; outside native measurement window",
+    "final_state": "Phone connected to native hotspot, screen locked, App stopped during attempted final reconnection; computer connected to GL hotspot. Final App playback confirmation pending phone unlock.",
+    "limitations": [
+      "Stationary current placement; range and through-wall coverage not measured.",
+      "Foreground playback results; background/network-selection behavior not verified stable.",
+      "Server restarted between A/B windows; source hashes and stream configuration identical.",
+      "ICMP results measure observed reachability/latency and do not identify router firmware versus interference.",
+      "FPS mean is the arithmetic mean of reported intervals, not exact total decoded frames divided by full elapsed time.",
+      "Final car SSH read timed out on computer path; no claim that car is globally unreachable."
+    ],
+    "movement_commands_sent": 0
+  }
+}

@@ -147,9 +147,12 @@ class CameraBroadcaster:
 def check_fresh(info, max_age=2):
     failed, ready = info.get('camera_failed'), info.get('camera_ready')
     stamp = info.get('last_frame_time')
+    # Snapshot the shared timestamp before sampling the clock. Otherwise a
+    # producer publishing between those reads can make a live frame look future-dated.
+    frame_time = stamp.value if stamp is not None else None
     if ((failed is not None and failed.is_set()) or
             (ready is not None and not ready.is_set()) or
-            stamp is None or not 0 <= time.monotonic() - stamp.value < max_age):
+            frame_time is None or not 0 <= time.monotonic() - frame_time < max_age):
         raise RuntimeError('Camera unavailable or frame expired; refusing stale image')
 
 

@@ -1,0 +1,741 @@
+{
+  "updated_at": "2026-10-03T15:45:39.083821+08:00",
+  "overall_goal_complete": false,
+  "goal_status": "active",
+  "conclusion": "Long stalls are associated with GL wireless access; same-phone same-band/channel native AP comparison does not show >1s stalls. Precise router/driver cause remains unconfirmed.",
+  "remaining_blocker": "Legitimate GL administrator configuration/log access unavailable; no router settings changed.",
+  "gl_first": {
+    "start": "2026-10-03T14:26:29.206280+08:00",
+    "end": "2026-10-03T14:29:29.206280+08:00",
+    "duration_seconds": 180,
+    "phone": {
+      "reports": 170,
+      "pid": [
+        24476
+      ],
+      "median_report_fps": 29.55,
+      "max_gap_ms": 1930,
+      "reports_with_gap_over_1s": 6
+    },
+    "local_video": {
+      "frames": 5371,
+      "effective_fps": 29.8424589915015,
+      "max_gap_ms": 109.49899999999957,
+      "source_sequence_strictly_increasing": true,
+      "stream_errors": []
+    },
+    "tcp": {
+      "peer": "192.168.8.182",
+      "bin_interval_approx_ms": 100,
+      "zero_receive_window_bins": 0,
+      "repeated_outgoing_sequence_markers": 201,
+      "ack_empty_runs_over_500ms": [
+        {
+          "start_seconds": 10.293589,
+          "end_seconds": 11.772234,
+          "duration_seconds": 1.4786449999999984
+        },
+        {
+          "start_seconds": 15.26127,
+          "end_seconds": 15.945826,
+          "duration_seconds": 0.6845560000000006
+        },
+        {
+          "start_seconds": 16.049783,
+          "end_seconds": 16.854634,
+          "duration_seconds": 0.8048509999999993
+        },
+        {
+          "start_seconds": 80.484556,
+          "end_seconds": 81.144789,
+          "duration_seconds": 0.6602330000000052
+        },
+        {
+          "start_seconds": 81.245254,
+          "end_seconds": 82.054627,
+          "duration_seconds": 0.8093729999999937
+        },
+        {
+          "start_seconds": 85.541278,
+          "end_seconds": 86.10316,
+          "duration_seconds": 0.5618819999999971
+        },
+        {
+          "start_seconds": 86.211198,
+          "end_seconds": 87.03218,
+          "duration_seconds": 0.8209820000000008
+        },
+        {
+          "start_seconds": 151.637325,
+          "end_seconds": 153.275096,
+          "duration_seconds": 1.6377709999999865
+        },
+        {
+          "start_seconds": 156.691392,
+          "end_seconds": 158.247551,
+          "duration_seconds": 1.5561589999999796
+        }
+      ]
+    },
+    "clock_calibration": {
+      "host_before_launch_epoch": 1791008788.6714082,
+      "host_after_launch_epoch": 1791008789.2055192,
+      "device_launch_epoch": 1735215703.8565335,
+      "host_minus_device_midpoint": 55793085.08193016,
+      "uncertainty_seconds": 0.2670555114746094
+    },
+    "event_correlations": [
+      {
+        "phone_fps_report_time": "2026-10-03T14:26:41.233000+08:00",
+        "phone_max_gap_ms": 1775,
+        "nearby_window_seconds": 3,
+        "car_local_frames": 89,
+        "car_local_max_gap_ms": 69.07200000000024
+      },
+      {
+        "phone_fps_report_time": "2026-10-03T14:26:46.236000+08:00",
+        "phone_max_gap_ms": 1780,
+        "nearby_window_seconds": 3,
+        "car_local_frames": 90,
+        "car_local_max_gap_ms": 63.40399999999846
+      },
+      {
+        "phone_fps_report_time": "2026-10-03T14:27:51.386000+08:00",
+        "phone_max_gap_ms": 1724,
+        "nearby_window_seconds": 3,
+        "car_local_frames": 90,
+        "car_local_max_gap_ms": 75.31199999999671
+      },
+      {
+        "phone_fps_report_time": "2026-10-03T14:27:56.577000+08:00",
+        "phone_max_gap_ms": 1930,
+        "nearby_window_seconds": 3,
+        "car_local_frames": 89,
+        "car_local_max_gap_ms": 75.88799999999196
+      },
+      {
+        "phone_fps_report_time": "2026-10-03T14:29:02.671000+08:00",
+        "phone_max_gap_ms": 1856,
+        "nearby_window_seconds": 3,
+        "car_local_frames": 89,
+        "car_local_max_gap_ms": 83.81100000002562
+      },
+      {
+        "phone_fps_report_time": "2026-10-03T14:29:07.588000+08:00",
+        "phone_max_gap_ms": 1739,
+        "nearby_window_seconds": 3,
+        "car_local_frames": 90,
+        "car_local_max_gap_ms": 65.37299999999391
+      }
+    ],
+    "ping": {
+      "phone_gateway": {
+        "transmitted": 180,
+        "received": 175,
+        "loss_percent": 2.777777777777779,
+        "median_ms": 7.0,
+        "maximum_ms": 776.0,
+        "missing_reply_sequence": [
+          17,
+          82,
+          87,
+          153,
+          158
+        ]
+      },
+      "phone_loopback": {
+        "transmitted": 180,
+        "received": 180,
+        "loss_percent": 0.0,
+        "median_ms": 0.0,
+        "maximum_ms": 7.0,
+        "missing_reply_sequence": []
+      },
+      "pc_gateway": {
+        "transmitted": 180,
+        "received": 177,
+        "loss_percent": 1.6666666666666718,
+        "median_ms": 8.44,
+        "maximum_ms": 872.669,
+        "missing_reply_sequence": [
+          11,
+          16,
+          81
+        ]
+      }
+    },
+    "car_baseline": {
+      "kind": "baseline",
+      "t": 0.020209,
+      "device_epoch": 1735215704.0818124,
+      "service": {
+        "MainPID": "116449",
+        "NRestarts": "0",
+        "ActiveState": "active"
+      },
+      "eth0": {
+        "rx_errors": 0,
+        "tx_errors": 0,
+        "rx_dropped": 0,
+        "tx_dropped": 0,
+        "collisions": 0
+      }
+    },
+    "car_final": {
+      "kind": "final",
+      "t": 180.033916,
+      "device_epoch": 1735215884.0955188,
+      "service": {
+        "MainPID": "116449",
+        "NRestarts": "0",
+        "ActiveState": "active"
+      },
+      "eth0": {
+        "rx_errors": 0,
+        "tx_errors": 0,
+        "rx_dropped": 0,
+        "tx_dropped": 0,
+        "collisions": 0
+      }
+    }
+  },
+  "native_same_band": {
+    "state": "complete",
+    "start": "2026-10-03T14:57:58.850769+08:00",
+    "planned_end": "2026-10-03T15:03:58.850769+08:00",
+    "updated": "2026-10-03T15:04:02.203976+08:00",
+    "elapsed_seconds": 360.0,
+    "remaining_seconds": 0,
+    "camera": {
+      "reports": 353,
+      "first_report_epoch": 1791010678.88,
+      "last_report_epoch": 1791011038.148,
+      "last_report_age_seconds": 4.05,
+      "report_span_seconds": 359.27,
+      "median_report_fps": 29.7,
+      "mean_report_fps": 29.533,
+      "minimum_report_fps": 15.7,
+      "maximum_reported_frame_gap_ms": 559,
+      "p95_reported_frame_gap_ms": 99,
+      "reports_with_gap_over_1000ms": 0,
+      "reports_with_gap_over_1500ms": 0,
+      "total_segment_errors": 0,
+      "failure_stops": [],
+      "watchdog_timeout_count": 0,
+      "preview_starts_during_window": [],
+      "app_pids": [
+        24476
+      ]
+    },
+    "phone_wifi": {
+      "samples": 12,
+      "ssids": [
+        "WSZN-2BFE2915"
+      ],
+      "failed_samples": 0,
+      "latest": {
+        "kind": "phone_wifi",
+        "time": "2026-10-03T15:03:32.523412+08:00",
+        "ssid": "WSZN-2BFE2915",
+        "rssi": "-38",
+        "band": "2.4GHz",
+        "frequency": "2437",
+        "linkSpeed": "86"
+      }
+    },
+    "computer_http": {
+      "samples": 12,
+      "failed_samples": 0,
+      "observed_service_boot_ids": [
+        "adbc8910bae2402398d43c741982a848"
+      ],
+      "latest": {
+        "kind": "computer_http",
+        "time": "2026-10-03T15:03:32.523412+08:00",
+        "bootId": "adbc8910bae2402398d43c741982a848",
+        "mode": "phone",
+        "moving": false,
+        "controlBusy": false,
+        "camera": {
+          "status": "live",
+          "frame_time": "2024-12-26T20:58:47+08:00",
+          "age_ms": 37
+        },
+        "http_status": 200,
+        "duration_ms": 21.6
+      }
+    },
+    "ping": {
+      "phone_to_car": {
+        "transmitted": 360,
+        "received": 359,
+        "loss_percent": 0.278,
+        "largest_observed_sequence": 360,
+        "median_ms": 6.0,
+        "maximum_ms": 270.0,
+        "responses_over_200ms": 1
+      },
+      "phone_to_router": {
+        "transmitted": 360,
+        "received": 360,
+        "loss_percent": 0.0,
+        "largest_observed_sequence": 360,
+        "median_ms": 5.0,
+        "maximum_ms": 293.0,
+        "responses_over_200ms": 1
+      },
+      "computer_to_car": {
+        "transmitted": 360,
+        "received": 346,
+        "loss_percent": 3.889,
+        "largest_observed_sequence": 359,
+        "median_ms": 6.32,
+        "maximum_ms": 1030.494,
+        "responses_over_200ms": 8
+      },
+      "computer_to_router": {
+        "transmitted": 360,
+        "received": 346,
+        "loss_percent": 3.889,
+        "largest_observed_sequence": 359,
+        "median_ms": 6.3469999999999995,
+        "maximum_ms": 1036.967,
+        "responses_over_200ms": 7
+      }
+    },
+    "collector": {
+      "camera": {
+        "pid": 19346,
+        "exit_code": -2
+      },
+      "phone_to_car": {
+        "pid": 19347,
+        "exit_code": 0
+      },
+      "phone_to_router": {
+        "pid": 19348,
+        "exit_code": 0
+      },
+      "computer_to_car": {
+        "pid": 19349,
+        "exit_code": 0
+      },
+      "computer_to_router": {
+        "pid": 19350,
+        "exit_code": 0
+      }
+    }
+  },
+  "gl_return": {
+    "state": "complete",
+    "start": "2026-10-03T15:06:20.315022+08:00",
+    "planned_end": "2026-10-03T15:09:20.315022+08:00",
+    "updated": "2026-10-03T15:09:22.517214+08:00",
+    "elapsed_seconds": 180.0,
+    "remaining_seconds": 0,
+    "camera": {
+      "reports": 171,
+      "first_report_epoch": 1791011180.812,
+      "last_report_epoch": 1791011360.013,
+      "last_report_age_seconds": 2.5,
+      "report_span_seconds": 179.2,
+      "median_report_fps": 29.8,
+      "mean_report_fps": 29.025,
+      "minimum_report_fps": 4.0,
+      "maximum_reported_frame_gap_ms": 1802,
+      "p95_reported_frame_gap_ms": 102,
+      "reports_with_gap_over_1000ms": 5,
+      "reports_with_gap_over_1500ms": 5,
+      "total_segment_errors": 27,
+      "failure_stops": [],
+      "watchdog_timeout_count": 0,
+      "preview_starts_during_window": [],
+      "app_pids": [
+        24476
+      ]
+    },
+    "phone_wifi": {
+      "samples": 6,
+      "ssids": [
+        "GL-MT300N-V2-c37"
+      ],
+      "failed_samples": 0,
+      "latest": {
+        "kind": "phone_wifi",
+        "time": "2026-10-03T15:08:51.893874+08:00",
+        "ssid": "GL-MT300N-V2-c37",
+        "rssi": "-29",
+        "band": "2.4GHz",
+        "frequency": "2437",
+        "linkSpeed": "144"
+      }
+    },
+    "computer_http": {
+      "samples": 6,
+      "failed_samples": 0,
+      "observed_service_boot_ids": [
+        "adbc8910bae2402398d43c741982a848"
+      ],
+      "latest": {
+        "kind": "computer_http",
+        "time": "2026-10-03T15:08:51.893874+08:00",
+        "bootId": "adbc8910bae2402398d43c741982a848",
+        "mode": "phone",
+        "moving": false,
+        "controlBusy": false,
+        "camera": {
+          "status": "live",
+          "frame_time": "2024-12-26T21:04:06+08:00",
+          "age_ms": 54
+        },
+        "http_status": 200,
+        "duration_ms": 30.0
+      }
+    },
+    "ping": {
+      "phone_to_car": {
+        "transmitted": 180,
+        "received": 175,
+        "loss_percent": 2.778,
+        "largest_observed_sequence": 180,
+        "median_ms": 5.0,
+        "maximum_ms": 473.0,
+        "responses_over_200ms": 4
+      },
+      "phone_to_router": {
+        "transmitted": 180,
+        "received": 175,
+        "loss_percent": 2.778,
+        "largest_observed_sequence": 180,
+        "median_ms": 5.0,
+        "maximum_ms": 472.0,
+        "responses_over_200ms": 4
+      },
+      "computer_to_car": {
+        "transmitted": 180,
+        "received": 175,
+        "loss_percent": 2.778,
+        "largest_observed_sequence": 179,
+        "median_ms": 6.681,
+        "maximum_ms": 243.664,
+        "responses_over_200ms": 1
+      },
+      "computer_to_router": {
+        "transmitted": 180,
+        "received": 175,
+        "loss_percent": 2.778,
+        "largest_observed_sequence": 179,
+        "median_ms": 6.603,
+        "maximum_ms": 267.978,
+        "responses_over_200ms": 1
+      }
+    },
+    "collector": {
+      "camera": {
+        "pid": 33079,
+        "exit_code": -2
+      },
+      "phone_to_car": {
+        "pid": 33080,
+        "exit_code": 0
+      },
+      "phone_to_router": {
+        "pid": 33081,
+        "exit_code": 0
+      },
+      "computer_to_car": {
+        "pid": 33082,
+        "exit_code": 0
+      },
+      "computer_to_router": {
+        "pid": 33083,
+        "exit_code": 0
+      }
+    }
+  },
+  "restoration": {
+    "restored_original": true,
+    "results": [
+      {
+        "cmd": [
+          "nmcli",
+          "-w",
+          "12",
+          "connection",
+          "up",
+          "uuid",
+          "304ed716-01fb-40bb-8977-89239260beb3",
+          "ifname",
+          "wlan0"
+        ],
+        "returncode": 0,
+        "output": "Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/12)\n",
+        "stderr": ""
+      },
+      {
+        "cmd": [
+          "nmcli",
+          "-w",
+          "12",
+          "connection",
+          "delete",
+          "id",
+          "Astra-Diagnostic-2.4-20261003"
+        ],
+        "returncode": 0,
+        "output": "Connection 'Astra-Diagnostic-2.4-20261003' (5e84eb5e-e96f-4713-a233-3891af258809) successfully deleted.\n",
+        "stderr": ""
+      }
+    ],
+    "profile": "connection.id:                          WSZN-2BFE2915\nconnection.uuid:                        304ed716-01fb-40bb-8977-89239260beb3\n802-11-wireless.band:                   a\n802-11-wireless.channel:                36\nipv4.addresses:                         192.168.149.1/24\n",
+    "active": "WSZN-2BFE2915:802-11-wireless:wlan0\nWired connection 1:802-3-ethernet:eth0\ndocker0:bridge:docker0\n"
+  },
+  "rollback_guard": {
+    "guard_process": "",
+    "active_hotspot": "WSZN-2BFE2915",
+    "restored_marker": true,
+    "guard_log": "cancelled after explicit restore\n"
+  },
+  "final_device": {
+    "service": {
+      "MainPID": "116449",
+      "NRestarts": "0",
+      "ActiveState": "active"
+    },
+    "source_sha256": "6e29ed3145ba2245ef6b9eb4c94aad89ff9f9f88e077c9b6f0207332ec43783a",
+    "status": {
+      "server_time": "2024-12-26T21:35:53+08:00",
+      "camera": {
+        "status": "live",
+        "frame_time": "2024-12-26T21:35:53+08:00",
+        "age_ms": 61
+      },
+      "lidar": {
+        "observed_at": "2024-12-26T21:35:53+08:00",
+        "serial": "89DFED95C4E493CAA5E69EF0180F4B6E",
+        "health": "OK",
+        "status": "scanning",
+        "points": 4408,
+        "nearest_mm": 100.0,
+        "front_nearest_mm": 598.0,
+        "sector_90_mm": 1504.0,
+        "sector_180_mm": 100.0,
+        "sector_270_mm": 257.0,
+        "age_seconds": 0.19
+      },
+      "bootId": "adbc8910bae2402398d43c741982a848",
+      "mode": "phone",
+      "speed": 40,
+      "moving": false,
+      "controlBusy": false
+    }
+  },
+  "motion_buttons_operated": false,
+  "router_configuration_modified": false,
+  "business_sources_modified_this_turn": false,
+  "observation_limits": [
+    "Short A/B/A windows do not replace an hour-long verification after a root-cause fix.",
+    "FPS report windows are not an exhaustive per-frame log.",
+    "TCP ACK absence measured in roughly 100ms bins; do not interpret as exact retransmission/loss counts.",
+    "ICMP loss is not TCP video packet loss.",
+    "Phone CPU sample in phone-mid-samples.json was taken after the first GL window and is not proof of CPU load during a stall.",
+    "Phone AWAKE/loopback evidence does not exclude driver-level Wi-Fi power saving.",
+    "Same-channel comparison preserves phone/App/video parameters; AP hardware differs and co-channel AP activity is not identical.",
+    "No wheel movement or ESP32 serial long soak performed."
+  ],
+  "source_hashes": {
+    "car_camera": {
+      "path": "/Users/raychen/Develop/AstraPlusCar/AstraPlusCar-device/python/src/utils/camera_broadcaster.py",
+      "sha256": "6e29ed3145ba2245ef6b9eb4c94aad89ff9f9f88e077c9b6f0207332ec43783a"
+    },
+    "phone_stream": {
+      "path": "/Users/raychen/Develop/AstraPlusCar/AstraPlusCar-HarmonyOS/entry/src/main/ets/services/CameraStream.ets",
+      "sha256": "0c4359c1fabbab3975be66980768b34890268844d9551c2fb32d175761e588ed"
+    },
+    "phone_page": {
+      "path": "/Users/raychen/Develop/AstraPlusCar/AstraPlusCar-HarmonyOS/entry/src/main/ets/pages/Index.ets",
+      "sha256": "2024a96b28f05be249bcd413dda669ea9ffce5454566110bba026ec50e2cb722"
+    },
+    "installed_hap": {
+      "path": "/Users/raychen/Develop/AstraPlusCar/AstraPlusCar-HarmonyOS/entry/build/default/outputs/default/entry-default-signed.hap",
+      "sha256": "3916215977783a3c2e040351a5bfd2ce4c0f71912bd7eb7dc26b34210b4de031"
+    }
+  },
+  "evidence_archive": {
+    "path": "/Users/raychen/Develop/AstraPlusCar/diagnostics/PATH_ISOLATION_TEST_2026-10-03.zip",
+    "bytes": 190648,
+    "sha256": "3f65dacfb5bd986ddabd5d18c1bb39c6903eca03890f57fb5d3a8f1983fc3d24",
+    "entries": [
+      {
+        "entry": "gl-first/config.json",
+        "bytes": 1615,
+        "sha256": "1b0daabab1af6cf530e54f0948a581e58f6412ec145b688df2749b413189303a"
+      },
+      {
+        "entry": "gl-first/device-probe.jsonl",
+        "bytes": 1062227,
+        "sha256": "7e6a39bcda70677b9268593c0779e1d0ceb47712c1b65a02671677bd93183581"
+      },
+      {
+        "entry": "gl-first/export-meta.json",
+        "bytes": 119,
+        "sha256": "f2529b9ba49f0a7cfd21b5eaad7cc94cd7f4db44818f991f7d6ca5b04b6e854b"
+      },
+      {
+        "entry": "gl-first/host-final.json",
+        "bytes": 340,
+        "sha256": "f82899925fddd64ee2588a672347eafd67940e901980d66ef2fd8933dec895aa"
+      },
+      {
+        "entry": "gl-first/camera.jsonl",
+        "bytes": 36257,
+        "sha256": "3bf115680f756bbc7accaa2ddcf4c36d250835648274e68fe6af6c32dfbfc311"
+      },
+      {
+        "entry": "gl-first/phone-frame-reports.json",
+        "bytes": 20256,
+        "sha256": "061df14c30917ae56930bc04f9bfc6149f69edfc678da5e878a46cc7ddfef440"
+      },
+      {
+        "entry": "gl-first/phone_gateway.jsonl",
+        "bytes": 19894,
+        "sha256": "78a832f4bc6e6b2ba601f1ea3b66c14a7434c99a13061b47fa87deda52b95d90"
+      },
+      {
+        "entry": "gl-first/phone_loopback.jsonl",
+        "bytes": 19987,
+        "sha256": "86adff5967b3780c558d744d6cef68ab3a8755c98b7ea0320ec87906b2ad8b99"
+      },
+      {
+        "entry": "gl-first/pc_gateway.jsonl",
+        "bytes": 21116,
+        "sha256": "f0da0143fe8c3f0d16332526752df3bd07f59f34d76f8fdecda75e6da5d5d59f"
+      },
+      {
+        "entry": "gl-first/phone-samples.json",
+        "bytes": 3689,
+        "sha256": "231d7a280b9b74976a5d12fcb4677fea2f023f06fb42cfbf06d9f83da629acb7"
+      },
+      {
+        "entry": "gl-first/phone-mid-samples.json",
+        "bytes": 2234,
+        "sha256": "c1fab7f16a83734eccdc1a7a2a0cbc1d973dce48741afd8d7a8c5466f615140e"
+      },
+      {
+        "entry": "gl-first/source-hashes.json",
+        "bytes": 896,
+        "sha256": "686b82216b900962becb3b8bae7ff8af82e34ce2eb9eae3ae3faeb85d0006f69"
+      },
+      {
+        "entry": "native-2.4/config.json",
+        "bytes": 1403,
+        "sha256": "607ffb88436e3eac3523a9a660c66c1535faa7496175f352eb7f60137af314f2"
+      },
+      {
+        "entry": "native-2.4/summary.json",
+        "bytes": 3080,
+        "sha256": "2fb9e6fdf650f91eb98967738fbfe920d7ec9cc40521b01463de9bdbe5467027"
+      },
+      {
+        "entry": "native-2.4/camera.log",
+        "bytes": 50757,
+        "sha256": "e4e33d7760a5e9312ece8e9e97e8bce9b97b0e2c4ba192b1380da725fb04316a"
+      },
+      {
+        "entry": "native-2.4/samples.jsonl",
+        "bytes": 5580,
+        "sha256": "cb68356624a076490d823eae3dda82b8a2009af7816847b8f4f4fe82e8ea4468"
+      },
+      {
+        "entry": "native-2.4/phone_to_car.log",
+        "bytes": 21334,
+        "sha256": "f90c0ea96f353dd4a5f563226ebc2947cafba860fb3d1fb583762a00ed7d5e6a"
+      },
+      {
+        "entry": "native-2.4/phone_to_router.log",
+        "bytes": 21376,
+        "sha256": "bed180e730e00cfe67f675e5bdf20666b699556b514e2914db5bb8eaf6e9d0b7"
+      },
+      {
+        "entry": "native-2.4/computer_to_car.log",
+        "bytes": 22486,
+        "sha256": "9034b52b236299a7613dbb08ab418bdb037f9b2a219622cb8339eddebc3f74a3"
+      },
+      {
+        "entry": "native-2.4/computer_to_router.log",
+        "bytes": 21782,
+        "sha256": "bca2a6b4cadf612e297e3b5bab58680eb431992541601b2e2e8bb40e48c64496"
+      },
+      {
+        "entry": "gl-return/config.json",
+        "bytes": 1402,
+        "sha256": "fe2a1b40544374182f1782bcf81b4429aa51098565cb3473a7d8cdad50631c2a"
+      },
+      {
+        "entry": "gl-return/summary.json",
+        "bytes": 3074,
+        "sha256": "e30edcd7838574521fc39de6aeca887449bf73bd60ff484418635c0edd26b292"
+      },
+      {
+        "entry": "gl-return/camera.log",
+        "bytes": 20403,
+        "sha256": "016cb9977bbb823142c7e7e9628e279b229e24300b372442965e376b21f17fb4"
+      },
+      {
+        "entry": "gl-return/samples.jsonl",
+        "bytes": 2814,
+        "sha256": "36fcedfcdb70f0e192ada2109996c28b60093e62252e283d80ddd5c63ff591a4"
+      },
+      {
+        "entry": "gl-return/phone_to_car.log",
+        "bytes": 10449,
+        "sha256": "1d1b99119f92e1c284d50c60ef8814b942f74d8e3f9d3e44bdcd73b34ca435a4"
+      },
+      {
+        "entry": "gl-return/phone_to_router.log",
+        "bytes": 10096,
+        "sha256": "6dd4497f9cca1d86657ec751d79467467f94bc67696b7fba2faec830fa22ba96"
+      },
+      {
+        "entry": "gl-return/computer_to_car.log",
+        "bytes": 11361,
+        "sha256": "2535a80be4045dd03a43e87fb3661de7cba1eac9fd00f5ad7bb1415c308f638a"
+      },
+      {
+        "entry": "gl-return/computer_to_router.log",
+        "bytes": 11005,
+        "sha256": "e875901c14d28987869414a7fa0b4a128825bf263a2188addc214c14fb01e197"
+      },
+      {
+        "entry": "restore/same-band-activation.json",
+        "bytes": 257,
+        "sha256": "f1006345973ac09607e5a72b37571c20a8972cdfe68705a5a9b7eedb2f009420"
+      },
+      {
+        "entry": "restore/same-band-restoration.json",
+        "bytes": 969,
+        "sha256": "aefbcb80958ed4f6b7d3aaa8fe967a08650dbe6b50fd0610365357d0afef586d"
+      },
+      {
+        "entry": "restore/restore-guard-final.json",
+        "bytes": 136,
+        "sha256": "04fdeced78db727c544833558161fa054987af58e8ee9866eac04181d4ae8eae"
+      },
+      {
+        "entry": "restore/phone-return-wifi.txt",
+        "bytes": 179,
+        "sha256": "c6f01be4a944d17b18a3db29ecf414d594f076e960e5e0210a249635b64323fd"
+      },
+      {
+        "entry": "restore/device-closeout.json",
+        "bytes": 720,
+        "sha256": "3c1453ef6b35e136915459877b715d003107de206c27fd6149068731aa41d915"
+      },
+      {
+        "entry": "restore/ui-closeout.json",
+        "bytes": 133209,
+        "sha256": "5c64b1a5c814f543cdbfe93d29d02919817f478f2e03f1d5c02936c23d54850c"
+      }
+    ]
+  }
+}

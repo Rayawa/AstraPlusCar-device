@@ -1,0 +1,1193 @@
+{
+  "test_window": {
+    "start": "2026-10-03T11:53:34.485+08:00",
+    "end": "2026-10-03T12:53:34.485+08:00",
+    "seconds": 3600.0
+  },
+  "verdict": "failed_uninterrupted_video_soak",
+  "conditions": {
+    "ssid": "GL-MT300N-V2-c37",
+    "endpoint": "http://192.168.8.204:8080/api/v1/status",
+    "target_fps": 30,
+    "segment_frames": 12,
+    "frame": {
+      "http_status": 200,
+      "content_type": "image/jpeg",
+      "bytes": 23112,
+      "frame_sequence": "157608",
+      "height": 360,
+      "width": 640
+    },
+    "vehicle_motion_commands_sent": false,
+    "router_configuration_changed": false,
+    "runtime_code_changed_during_window": false
+  },
+  "camera_generations": [
+    {
+      "generation": 0,
+      "first_fps_report": "2026-10-03T11:53:35.320+08:00",
+      "last_fps_report": "2026-10-03T12:34:06.422+08:00",
+      "reports": 2319,
+      "reported_active_span_seconds": 2431.102,
+      "time_weighted_fps_estimate": 28.224,
+      "reports_with_gap_over_1s": 68
+    },
+    {
+      "generation": 1,
+      "first_fps_report": "2026-10-03T12:37:49.614+08:00",
+      "last_fps_report": "2026-10-03T12:53:33.861+08:00",
+      "reports": 901,
+      "reported_active_span_seconds": 945.27,
+      "time_weighted_fps_estimate": 28.07,
+      "reports_with_gap_over_1s": 26
+    }
+  ],
+  "camera_metrics": {
+    "median_report_fps": 29.7,
+    "time_weighted_active_fps_estimate": 28.181,
+    "whole_window_fps_estimate_including_connection_gap": 26.43,
+    "reported_active_span_seconds": 3376.372,
+    "gap_over_1s_report_count": 94,
+    "maximum_short_gap_ms": 1900,
+    "watchdog_failure_log_count": 0,
+    "inferred_service_disconnect_count_at_least": 1,
+    "observed_failed_automatic_reconnect_count_at_least": 1,
+    "manual_resume_count": 1,
+    "cycle_median_seconds": 71.159,
+    "short_pair_median_seconds": 5.034,
+    "notes": [
+      "FPS estimates integrate rounded per-report FPS over each generation; never span a reconnect with the new FPS.",
+      "The initial partial report and final unreported frames are excluded from reconstructed frame totals.",
+      "maxGap is logged per FPS report; >1s report count is not a complete per-frame interruption count.",
+      "pollStatus may stop preview without a CameraStream failure log; zero watchdog logs is not zero disconnects."
+    ]
+  },
+  "service_boot_changes": [
+    {
+      "first_observed_at": "2026-10-03T12:34:39.996008+08:00",
+      "old": "eb6f7436ac68438b917dd078306b609a",
+      "new": "70948fe4e96a4226be02ab7283a7920a"
+    }
+  ],
+  "device_final": {
+    "device_wallclock": "2024-12-26T18:50:18.420098+08:00",
+    "device_monotonic": 9210.959677531,
+    "service": {
+      "MainPID": "77072",
+      "NRestarts": "2",
+      "ExecMainStartTimestamp": "Thu 2024-12-26 18:29:28 CST",
+      "ActiveState": "active"
+    },
+    "camera_broadcaster_sha256": "f52c8f71ed5d89975b64732ddd411fee754fd16f04f5ec415365f2825c2511c9",
+    "os_boot_id": "4b1321cf-4ce2-4b97-b245-bdb0c3c12b59",
+    "eth0_statistics": {
+      "rx_errors": 0,
+      "tx_errors": 0,
+      "rx_dropped": 0,
+      "tx_dropped": 0,
+      "collisions": 0
+    },
+    "wired_ping": {
+      "transmitted": 3487,
+      "received": 3487,
+      "loss_percent": 0.0,
+      "maximum_sequence": 3487,
+      "missing_sequence_count": 0,
+      "median_ms": 0.435,
+      "maximum_ms": 21.4,
+      "probe_has_ended": true
+    }
+  },
+  "actions": [
+    {
+      "time": "2026-10-03T12:37:12.531463+08:00",
+      "epoch": 1791002232.531463,
+      "action": "click_test_connect_after_service_restart",
+      "reason": "App automatic reconnect failed after device service restart; resume remaining soak window",
+      "returncode": 0,
+      "output": "No Error\n"
+    }
+  ],
+  "wifi_rssi_dbm_range": [
+    -40,
+    -25
+  ],
+  "source_hashes_at_end": {
+    "AstraPlusCar-device/python/camera_preview.py": "c725f5a883c709c2a3b222f758beca202011435608000a4bbdb19dbd06535ebf",
+    "AstraPlusCar-device/python/phone_mode.py": "3f0eb3b96915d1cfb446b65d4ee5ba0a327f24773098e9ee82635a943c2553e0",
+    "AstraPlusCar-HarmonyOS/entry/src/main/ets/services/CameraStream.ets": "0c4359c1fabbab3975be66980768b34890268844d9551c2fb32d175761e588ed"
+  },
+  "source_hashes_unchanged": true,
+  "stall_reports": [
+    {
+      "epoch": 1790999633.796,
+      "fps": 5.5,
+      "max_gap_ms": 1812,
+      "frame_errors": 5,
+      "time": "2026-10-03T11:53:53.796+08:00"
+    },
+    {
+      "epoch": 1790999638.794,
+      "fps": 3.1,
+      "max_gap_ms": 1766,
+      "frame_errors": 4,
+      "time": "2026-10-03T11:53:58.794+08:00"
+    },
+    {
+      "epoch": 1790999704.893,
+      "fps": 3.2,
+      "max_gap_ms": 1729,
+      "frame_errors": 4,
+      "time": "2026-10-03T11:55:04.893+08:00"
+    },
+    {
+      "epoch": 1790999709.958,
+      "fps": 4.0,
+      "max_gap_ms": 1777,
+      "frame_errors": 5,
+      "time": "2026-10-03T11:55:09.958+08:00"
+    },
+    {
+      "epoch": 1790999776.071,
+      "fps": 3.7,
+      "max_gap_ms": 1731,
+      "frame_errors": 4,
+      "time": "2026-10-03T11:56:16.071+08:00"
+    },
+    {
+      "epoch": 1790999781.104,
+      "fps": 4.1,
+      "max_gap_ms": 1734,
+      "frame_errors": 5,
+      "time": "2026-10-03T11:56:21.104+08:00"
+    },
+    {
+      "epoch": 1790999847.299,
+      "fps": 5.1,
+      "max_gap_ms": 1810,
+      "frame_errors": 4,
+      "time": "2026-10-03T11:57:27.299+08:00"
+    },
+    {
+      "epoch": 1790999852.259,
+      "fps": 3.2,
+      "max_gap_ms": 1747,
+      "frame_errors": 5,
+      "time": "2026-10-03T11:57:32.259+08:00"
+    },
+    {
+      "epoch": 1790999918.473,
+      "fps": 0.6,
+      "max_gap_ms": 1791,
+      "frame_errors": 4,
+      "time": "2026-10-03T11:58:38.473+08:00"
+    },
+    {
+      "epoch": 1790999923.435,
+      "fps": 3.1,
+      "max_gap_ms": 1736,
+      "frame_errors": 5,
+      "time": "2026-10-03T11:58:43.435+08:00"
+    },
+    {
+      "epoch": 1790999989.586,
+      "fps": 10.7,
+      "max_gap_ms": 1766,
+      "frame_errors": 4,
+      "time": "2026-10-03T11:59:49.586+08:00"
+    },
+    {
+      "epoch": 1790999994.635,
+      "fps": 4.5,
+      "max_gap_ms": 1753,
+      "frame_errors": 4,
+      "time": "2026-10-03T11:59:54.635+08:00"
+    },
+    {
+      "epoch": 1791000060.735,
+      "fps": 4.1,
+      "max_gap_ms": 1715,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:01:00.735+08:00"
+    },
+    {
+      "epoch": 1791000065.749,
+      "fps": 4.1,
+      "max_gap_ms": 1727,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:01:05.749+08:00"
+    },
+    {
+      "epoch": 1791000132.071,
+      "fps": 3.8,
+      "max_gap_ms": 1900,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:02:12.071+08:00"
+    },
+    {
+      "epoch": 1791000136.985,
+      "fps": 1.1,
+      "max_gap_ms": 1788,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:02:16.985+08:00"
+    },
+    {
+      "epoch": 1791000203.076,
+      "fps": 5.7,
+      "max_gap_ms": 1716,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:03:23.076+08:00"
+    },
+    {
+      "epoch": 1791000208.143,
+      "fps": 4.0,
+      "max_gap_ms": 1784,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:03:28.143+08:00"
+    },
+    {
+      "epoch": 1791000273.288,
+      "fps": 5.6,
+      "max_gap_ms": 1781,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:04:33.288+08:00"
+    },
+    {
+      "epoch": 1791000278.327,
+      "fps": 3.0,
+      "max_gap_ms": 1816,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:04:38.327+08:00"
+    },
+    {
+      "epoch": 1791000344.413,
+      "fps": 1.7,
+      "max_gap_ms": 1711,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:05:44.413+08:00"
+    },
+    {
+      "epoch": 1791000349.439,
+      "fps": 3.7,
+      "max_gap_ms": 1724,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:05:49.439+08:00"
+    },
+    {
+      "epoch": 1791000415.651,
+      "fps": 11.5,
+      "max_gap_ms": 1784,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:06:55.651+08:00"
+    },
+    {
+      "epoch": 1791000420.656,
+      "fps": 3.1,
+      "max_gap_ms": 1780,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:07:00.656+08:00"
+    },
+    {
+      "epoch": 1791000486.733,
+      "fps": 0.6,
+      "max_gap_ms": 1746,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:08:06.733+08:00"
+    },
+    {
+      "epoch": 1791000491.777,
+      "fps": 4.5,
+      "max_gap_ms": 1735,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:08:11.777+08:00"
+    },
+    {
+      "epoch": 1791000557.988,
+      "fps": 3.6,
+      "max_gap_ms": 1765,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:09:17.988+08:00"
+    },
+    {
+      "epoch": 1791000563.022,
+      "fps": 3.6,
+      "max_gap_ms": 1737,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:09:23.022+08:00"
+    },
+    {
+      "epoch": 1791000629.13,
+      "fps": 4.5,
+      "max_gap_ms": 1751,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:10:29.130+08:00"
+    },
+    {
+      "epoch": 1791000634.217,
+      "fps": 4.9,
+      "max_gap_ms": 1750,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:10:34.217+08:00"
+    },
+    {
+      "epoch": 1791000699.304,
+      "fps": 4.0,
+      "max_gap_ms": 1766,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:11:39.304+08:00"
+    },
+    {
+      "epoch": 1791000704.336,
+      "fps": 3.6,
+      "max_gap_ms": 1742,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:11:44.336+08:00"
+    },
+    {
+      "epoch": 1791000770.499,
+      "fps": 10.8,
+      "max_gap_ms": 1814,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:12:50.499+08:00"
+    },
+    {
+      "epoch": 1791000775.476,
+      "fps": 3.6,
+      "max_gap_ms": 1721,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:12:55.476+08:00"
+    },
+    {
+      "epoch": 1791000841.611,
+      "fps": 5.4,
+      "max_gap_ms": 1714,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:14:01.611+08:00"
+    },
+    {
+      "epoch": 1791000846.652,
+      "fps": 4.1,
+      "max_gap_ms": 1762,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:14:06.652+08:00"
+    },
+    {
+      "epoch": 1791000912.775,
+      "fps": 4.5,
+      "max_gap_ms": 1739,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:15:12.775+08:00"
+    },
+    {
+      "epoch": 1791000917.794,
+      "fps": 4.1,
+      "max_gap_ms": 1740,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:15:17.794+08:00"
+    },
+    {
+      "epoch": 1791000983.931,
+      "fps": 3.7,
+      "max_gap_ms": 1722,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:16:23.931+08:00"
+    },
+    {
+      "epoch": 1791000988.978,
+      "fps": 4.5,
+      "max_gap_ms": 1715,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:16:28.978+08:00"
+    },
+    {
+      "epoch": 1791001055.105,
+      "fps": 4.0,
+      "max_gap_ms": 1752,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:17:35.105+08:00"
+    },
+    {
+      "epoch": 1791001060.2,
+      "fps": 4.4,
+      "max_gap_ms": 1773,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:17:40.200+08:00"
+    },
+    {
+      "epoch": 1791001125.279,
+      "fps": 4.1,
+      "max_gap_ms": 1708,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:18:45.279+08:00"
+    },
+    {
+      "epoch": 1791001130.328,
+      "fps": 4.0,
+      "max_gap_ms": 1745,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:18:50.328+08:00"
+    },
+    {
+      "epoch": 1791001196.448,
+      "fps": 2.2,
+      "max_gap_ms": 1757,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:19:56.448+08:00"
+    },
+    {
+      "epoch": 1791001201.429,
+      "fps": 4.7,
+      "max_gap_ms": 1685,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:20:01.429+08:00"
+    },
+    {
+      "epoch": 1791001267.603,
+      "fps": 4.0,
+      "max_gap_ms": 1705,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:21:07.603+08:00"
+    },
+    {
+      "epoch": 1791001272.648,
+      "fps": 3.6,
+      "max_gap_ms": 1760,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:21:12.648+08:00"
+    },
+    {
+      "epoch": 1791001338.78,
+      "fps": 4.1,
+      "max_gap_ms": 1721,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:22:18.780+08:00"
+    },
+    {
+      "epoch": 1791001343.822,
+      "fps": 3.6,
+      "max_gap_ms": 1752,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:22:23.822+08:00"
+    },
+    {
+      "epoch": 1791001409.955,
+      "fps": 1.7,
+      "max_gap_ms": 1736,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:23:29.955+08:00"
+    },
+    {
+      "epoch": 1791001414.974,
+      "fps": 3.7,
+      "max_gap_ms": 1731,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:23:34.974+08:00"
+    },
+    {
+      "epoch": 1791001481.163,
+      "fps": 9.2,
+      "max_gap_ms": 1788,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:24:41.163+08:00"
+    },
+    {
+      "epoch": 1791001486.161,
+      "fps": 3.1,
+      "max_gap_ms": 1745,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:24:46.161+08:00"
+    },
+    {
+      "epoch": 1791001551.333,
+      "fps": 1.6,
+      "max_gap_ms": 1799,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:25:51.333+08:00"
+    },
+    {
+      "epoch": 1791001556.345,
+      "fps": 3.1,
+      "max_gap_ms": 1756,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:25:56.345+08:00"
+    },
+    {
+      "epoch": 1791001622.492,
+      "fps": 4.8,
+      "max_gap_ms": 1771,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:27:02.492+08:00"
+    },
+    {
+      "epoch": 1791001627.51,
+      "fps": 3.1,
+      "max_gap_ms": 1776,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:27:07.510+08:00"
+    },
+    {
+      "epoch": 1791001693.646,
+      "fps": 3.1,
+      "max_gap_ms": 1779,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:28:13.646+08:00"
+    },
+    {
+      "epoch": 1791001698.712,
+      "fps": 4.0,
+      "max_gap_ms": 1811,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:28:18.712+08:00"
+    },
+    {
+      "epoch": 1791001764.859,
+      "fps": 5.6,
+      "max_gap_ms": 1784,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:29:24.859+08:00"
+    },
+    {
+      "epoch": 1791001769.817,
+      "fps": 3.2,
+      "max_gap_ms": 1747,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:29:29.817+08:00"
+    },
+    {
+      "epoch": 1791001835.99,
+      "fps": 5.7,
+      "max_gap_ms": 1768,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:30:35.990+08:00"
+    },
+    {
+      "epoch": 1791001841.049,
+      "fps": 3.0,
+      "max_gap_ms": 1761,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:30:41.049+08:00"
+    },
+    {
+      "epoch": 1791001907.148,
+      "fps": 10.9,
+      "max_gap_ms": 1799,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:31:47.148+08:00"
+    },
+    {
+      "epoch": 1791001912.215,
+      "fps": 4.0,
+      "max_gap_ms": 1782,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:31:52.215+08:00"
+    },
+    {
+      "epoch": 1791001977.293,
+      "fps": 2.7,
+      "max_gap_ms": 1756,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:32:57.293+08:00"
+    },
+    {
+      "epoch": 1791001982.322,
+      "fps": 4.2,
+      "max_gap_ms": 1741,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:33:02.322+08:00"
+    },
+    {
+      "epoch": 1791002333.128,
+      "fps": 10.1,
+      "max_gap_ms": 1763,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:38:53.128+08:00"
+    },
+    {
+      "epoch": 1791002338.169,
+      "fps": 3.5,
+      "max_gap_ms": 1798,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:38:58.169+08:00"
+    },
+    {
+      "epoch": 1791002403.279,
+      "fps": 8.9,
+      "max_gap_ms": 1767,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:40:03.279+08:00"
+    },
+    {
+      "epoch": 1791002408.328,
+      "fps": 4.5,
+      "max_gap_ms": 1723,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:40:08.328+08:00"
+    },
+    {
+      "epoch": 1791002474.456,
+      "fps": 11.2,
+      "max_gap_ms": 1775,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:41:14.456+08:00"
+    },
+    {
+      "epoch": 1791002479.495,
+      "fps": 4.0,
+      "max_gap_ms": 1771,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:41:19.495+08:00"
+    },
+    {
+      "epoch": 1791002545.627,
+      "fps": 3.2,
+      "max_gap_ms": 1744,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:42:25.627+08:00"
+    },
+    {
+      "epoch": 1791002550.68,
+      "fps": 3.6,
+      "max_gap_ms": 1760,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:42:30.680+08:00"
+    },
+    {
+      "epoch": 1791002616.811,
+      "fps": 2.5,
+      "max_gap_ms": 1833,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:43:36.811+08:00"
+    },
+    {
+      "epoch": 1791002621.834,
+      "fps": 3.5,
+      "max_gap_ms": 1769,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:43:41.834+08:00"
+    },
+    {
+      "epoch": 1791002687.954,
+      "fps": 3.6,
+      "max_gap_ms": 1738,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:44:47.954+08:00"
+    },
+    {
+      "epoch": 1791002693.037,
+      "fps": 4.0,
+      "max_gap_ms": 1800,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:44:53.037+08:00"
+    },
+    {
+      "epoch": 1791002759.112,
+      "fps": 1.1,
+      "max_gap_ms": 1744,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:45:59.112+08:00"
+    },
+    {
+      "epoch": 1791002764.2,
+      "fps": 3.0,
+      "max_gap_ms": 1741,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:46:04.200+08:00"
+    },
+    {
+      "epoch": 1791002829.366,
+      "fps": 5.2,
+      "max_gap_ms": 1771,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:47:09.366+08:00"
+    },
+    {
+      "epoch": 1791002834.335,
+      "fps": 4.1,
+      "max_gap_ms": 1729,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:47:14.335+08:00"
+    },
+    {
+      "epoch": 1791002900.472,
+      "fps": 2.2,
+      "max_gap_ms": 1740,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:48:20.472+08:00"
+    },
+    {
+      "epoch": 1791002905.528,
+      "fps": 4.4,
+      "max_gap_ms": 1758,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:48:25.528+08:00"
+    },
+    {
+      "epoch": 1791002971.692,
+      "fps": 5.2,
+      "max_gap_ms": 1788,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:49:31.692+08:00"
+    },
+    {
+      "epoch": 1791002976.721,
+      "fps": 3.0,
+      "max_gap_ms": 1800,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:49:36.721+08:00"
+    },
+    {
+      "epoch": 1791003042.991,
+      "fps": 2.5,
+      "max_gap_ms": 1874,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:50:42.991+08:00"
+    },
+    {
+      "epoch": 1791003047.937,
+      "fps": 2.1,
+      "max_gap_ms": 1788,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:50:47.937+08:00"
+    },
+    {
+      "epoch": 1791003114.109,
+      "fps": 2.1,
+      "max_gap_ms": 1824,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:51:54.109+08:00"
+    },
+    {
+      "epoch": 1791003119.141,
+      "fps": 3.6,
+      "max_gap_ms": 1804,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:51:59.141+08:00"
+    },
+    {
+      "epoch": 1791003185.227,
+      "fps": 2.2,
+      "max_gap_ms": 1763,
+      "frame_errors": 4,
+      "time": "2026-10-03T12:53:05.227+08:00"
+    },
+    {
+      "epoch": 1791003190.269,
+      "fps": 3.0,
+      "max_gap_ms": 1783,
+      "frame_errors": 5,
+      "time": "2026-10-03T12:53:10.269+08:00"
+    }
+  ],
+  "raw_summary": {
+    "state": "complete",
+    "start": "2026-10-03T11:53:34.485834+08:00",
+    "planned_end": "2026-10-03T12:53:34.485834+08:00",
+    "updated": "2026-10-03T12:53:51.777154+08:00",
+    "elapsed_seconds": 3600.0,
+    "remaining_seconds": 0,
+    "camera": {
+      "reports": 3220,
+      "first_report_epoch": 1790999615.32,
+      "last_report_epoch": 1791003213.861,
+      "last_report_age_seconds": 17.91,
+      "report_span_seconds": 3598.54,
+      "median_report_fps": 29.7,
+      "mean_report_fps": 28.864,
+      "minimum_report_fps": 0.6,
+      "maximum_reported_frame_gap_ms": 1900,
+      "p95_reported_frame_gap_ms": 129,
+      "reports_with_gap_over_1000ms": 94,
+      "reports_with_gap_over_1500ms": 94,
+      "total_segment_errors": 507,
+      "failure_stops": [],
+      "watchdog_timeout_count": 0,
+      "preview_starts_during_window": [
+        "1791002268.591 47161 47161 I A00000/top.rayawa.astra_plus_car/AstraCamera: preview mode=segments fps=30 frames=12"
+      ],
+      "app_pids": [
+        47161
+      ]
+    },
+    "phone_wifi": {
+      "samples": 119,
+      "ssids": [
+        "GL-MT300N-V2-c37"
+      ],
+      "failed_samples": 0,
+      "latest": {
+        "kind": "phone_wifi",
+        "time": "2026-10-03T12:53:25.111737+08:00",
+        "ssid": "GL-MT300N-V2-c37",
+        "rssi": "-33",
+        "band": "2.4GHz",
+        "frequency": "2437",
+        "linkSpeed": "144"
+      }
+    },
+    "computer_http": {
+      "samples": 119,
+      "failed_samples": 2,
+      "observed_service_boot_ids": [
+        "70948fe4e96a4226be02ab7283a7920a",
+        "eb6f7436ac68438b917dd078306b609a"
+      ],
+      "latest": {
+        "kind": "computer_http",
+        "time": "2026-10-03T12:53:25.111737+08:00",
+        "bootId": "70948fe4e96a4226be02ab7283a7920a",
+        "mode": "phone",
+        "moving": false,
+        "controlBusy": false,
+        "camera": {
+          "status": "live",
+          "frame_time": "2024-12-26T18:48:40+08:00",
+          "age_ms": 18
+        },
+        "http_status": 200,
+        "duration_ms": 43.2
+      }
+    },
+    "ping": {
+      "phone_to_car": {
+        "transmitted": 3600,
+        "received": 3416,
+        "loss_percent": 5.111,
+        "largest_observed_sequence": 3600,
+        "median_ms": 6.0,
+        "maximum_ms": 797.0,
+        "responses_over_200ms": 63
+      },
+      "phone_to_router": {
+        "transmitted": 3600,
+        "received": 3417,
+        "loss_percent": 5.083,
+        "largest_observed_sequence": 3600,
+        "median_ms": 5.0,
+        "maximum_ms": 799.0,
+        "responses_over_200ms": 65
+      },
+      "computer_to_car": {
+        "transmitted": 3599,
+        "received": 3502,
+        "loss_percent": 2.695,
+        "largest_observed_sequence": 3598,
+        "median_ms": 8.238,
+        "maximum_ms": 1209.107,
+        "responses_over_200ms": 77
+      },
+      "computer_to_router": {
+        "transmitted": 3600,
+        "received": 3505,
+        "loss_percent": 2.639,
+        "largest_observed_sequence": 3599,
+        "median_ms": 7.986,
+        "maximum_ms": 1204.855,
+        "responses_over_200ms": 81
+      }
+    },
+    "collector": {
+      "camera": {
+        "pid": 40358,
+        "exit_code": -2
+      },
+      "phone_to_car": {
+        "pid": 40359,
+        "exit_code": 0
+      },
+      "phone_to_router": {
+        "pid": 40360,
+        "exit_code": 0
+      },
+      "computer_to_car": {
+        "pid": 40361,
+        "exit_code": 0
+      },
+      "computer_to_router": {
+        "pid": 40362,
+        "exit_code": 0
+      }
+    }
+  },
+  "evidence_folder": "/private/tmp/astra-gl-soak-20261003",
+  "evidence_manifest": {
+    "config.json": {
+      "bytes": 1293,
+      "sha256": "b62bc34a10b6cd31fdf232dccc14cc537948dcdcfa1d126cc50c566c23bae114"
+    },
+    "baseline.json": {
+      "bytes": 1302,
+      "sha256": "f533a6e6d82f82cfa3f309c83325a70f64d69a5a2d43ebff1655d1e8af9faf55"
+    },
+    "summary.json": {
+      "bytes": 3273,
+      "sha256": "aaeef1a06ff20ddf2e56320e9baa10f8d74c5a5e41f123393422b11d46061893"
+    },
+    "camera.log": {
+      "bytes": 413897,
+      "sha256": "d91ae896edfed42dd38f80a3bb8c1f7cd7c969d7ff0980f6aa9bf5b29776ebce"
+    },
+    "samples.jsonl": {
+      "bytes": 55507,
+      "sha256": "ee2989e2a803fd067f01d0056289084fb028dd0fb55cc5c787d1ac6f0315c125"
+    },
+    "actions.jsonl": {
+      "bytes": 271,
+      "sha256": "138c9060d293c22a90ec2629b8b7157a39e686efc977eaacc6584888c7d3fcd3"
+    },
+    "service-restart-evidence.txt": {
+      "bytes": 11395,
+      "sha256": "9e8d8d859592e2ee4a12856d38dd91cd5926186d73687a3cfc12732fa2c42fdd"
+    },
+    "car_to_router_wired.log": {
+      "bytes": 215064,
+      "sha256": "1a087625401a01bf083b327d8174407b4c5626c67fe27f8b5c6377582c814220"
+    },
+    "phone_to_car.log": {
+      "bytes": 205156,
+      "sha256": "dcc85e5f706a92fbebbbc49d0418355ef82463f788251a41a9b581a924ed610a"
+    },
+    "phone_to_router.log": {
+      "bytes": 198295,
+      "sha256": "877bce971593811f900c287e349891856bfcdab9844a5e2438f9f716bdbe6f47"
+    },
+    "computer_to_car.log": {
+      "bytes": 228165,
+      "sha256": "7daa629dcfdb383814e2e6a4af30a284297514a684f19782660be1c4d517c102"
+    },
+    "computer_to_router.log": {
+      "bytes": 221206,
+      "sha256": "3e2ae51ea37c031cc6b9aeb832fbd03ea71c26a037fca01cfcd3e9d4f22d2bef"
+    },
+    "frame-metadata.json": {
+      "bytes": 137,
+      "sha256": "0ba326876390a5aa5ce509a164c8d0685697b37f28ba4e484d04ddd0a94376c9"
+    },
+    "device-final.json": {
+      "bytes": 219253,
+      "sha256": "e40ccb176e9b686d58197c3729638df0d4e034559a3809159f1b82cb34c7f193"
+    }
+  },
+  "camera_race_candidate": {
+    "offline_reproduced": true,
+    "confirmed_cause_of_this_restart": false,
+    "description": "check_fresh reads current monotonic time before the concurrently updated shared frame timestamp; publication between these reads can create a negative computed age for a valid new frame."
+  },
+  "post_soak_fix": {
+    "scope": "After the completed original 60-minute baseline; not part of that window",
+    "source": "AstraPlusCar-device/python/src/utils/camera_broadcaster.py",
+    "tests": {
+      "completed_at": "2026-10-03T13:01:50.136291+08:00",
+      "test_suite": "test/utils/test_camera_broadcaster.py",
+      "tests_run": 5,
+      "tests_passed": 5,
+      "syntax_checked": [
+        "python/src/utils/camera_broadcaster.py",
+        "python/test/utils/test_camera_broadcaster.py"
+      ],
+      "diff_check_passed": true,
+      "test_scope": "simulated camera and deterministic timestamp publication; not proof of one-hour hardware stability",
+      "hardware_activation": {
+        "completed_device_wallclock": "2024-12-26T18:53:45.770605+08:00",
+        "before_boot_id": "70948fe4e96a4226be02ab7283a7920a",
+        "after_status": {
+          "server_time": "2024-12-26T18:53:45+08:00",
+          "camera": {
+            "status": "live",
+            "frame_time": "2024-12-26T18:53:45+08:00",
+            "age_ms": 38
+          },
+          "lidar": {
+            "observed_at": "2024-12-26T18:53:45+08:00",
+            "serial": "89DFED95C4E493CAA5E69EF0180F4B6E",
+            "health": "OK",
+            "status": "scanning",
+            "points": 1729,
+            "nearest_mm": 132.0,
+            "front_nearest_mm": 204.0,
+            "sector_90_mm": 602.0,
+            "sector_180_mm": 132.0,
+            "sector_270_mm": 297.0,
+            "age_seconds": 0.24
+          },
+          "bootId": "ffbde771bb8f4c6f81640152248d47fe",
+          "mode": "phone",
+          "speed": 40,
+          "moving": false,
+          "controlBusy": false
+        },
+        "backup": "/tmp/astra-broadcaster-before-timestamp-fix-20261003.py",
+        "deployed_sha256": "6e29ed3145ba2245ef6b9eb4c94aad89ff9f9f88e077c9b6f0207332ec43783a",
+        "service": "MainPID=94182\nNRestarts=0\nActiveState=active\n",
+        "planned_restart_after_soak": true
+      }
+    },
+    "smoke_summary": {
+      "state": "complete",
+      "start": "2026-10-03T13:00:37.584430+08:00",
+      "planned_end": "2026-10-03T13:03:37.584430+08:00",
+      "updated": "2026-10-03T13:03:39.733574+08:00",
+      "elapsed_seconds": 180.0,
+      "remaining_seconds": 0,
+      "camera": {
+        "reports": 172,
+        "first_report_epoch": 1791003637.618,
+        "last_report_epoch": 1791003816.616,
+        "last_report_age_seconds": 3.12,
+        "report_span_seconds": 179.0,
+        "median_report_fps": 29.7,
+        "mean_report_fps": 29.038,
+        "minimum_report_fps": 1.6,
+        "maximum_reported_frame_gap_ms": 1934,
+        "p95_reported_frame_gap_ms": 118,
+        "reports_with_gap_over_1000ms": 4,
+        "reports_with_gap_over_1500ms": 4,
+        "total_segment_errors": 22,
+        "failure_stops": [],
+        "watchdog_timeout_count": 0,
+        "preview_starts_during_window": [],
+        "app_pids": [
+          47161
+        ]
+      },
+      "phone_wifi": {
+        "samples": 6,
+        "ssids": [
+          "GL-MT300N-V2-c37"
+        ],
+        "failed_samples": 0,
+        "latest": {
+          "kind": "phone_wifi",
+          "time": "2026-10-03T13:03:09.458019+08:00",
+          "ssid": "GL-MT300N-V2-c37",
+          "rssi": "-34",
+          "band": "2.4GHz",
+          "frequency": "2437",
+          "linkSpeed": "130"
+        }
+      },
+      "computer_http": {
+        "samples": 6,
+        "failed_samples": 0,
+        "observed_service_boot_ids": [
+          "ffbde771bb8f4c6f81640152248d47fe"
+        ],
+        "latest": {
+          "kind": "computer_http",
+          "time": "2026-10-03T13:03:09.458019+08:00",
+          "bootId": "ffbde771bb8f4c6f81640152248d47fe",
+          "mode": "phone",
+          "moving": false,
+          "controlBusy": false,
+          "camera": {
+            "status": "live",
+            "frame_time": "2024-12-26T18:58:24+08:00",
+            "age_ms": 26
+          },
+          "http_status": 200,
+          "duration_ms": 25.6
+        }
+      },
+      "ping": {
+        "phone_to_car": {
+          "transmitted": 180,
+          "received": 178,
+          "loss_percent": 1.111,
+          "largest_observed_sequence": 180,
+          "median_ms": 8.0,
+          "maximum_ms": 825.0,
+          "responses_over_200ms": 4
+        },
+        "phone_to_router": {
+          "transmitted": 180,
+          "received": 178,
+          "loss_percent": 1.111,
+          "largest_observed_sequence": 180,
+          "median_ms": 8.0,
+          "maximum_ms": 811.0,
+          "responses_over_200ms": 4
+        },
+        "computer_to_car": {
+          "transmitted": 180,
+          "received": 176,
+          "loss_percent": 2.222,
+          "largest_observed_sequence": 179,
+          "median_ms": 10.5745,
+          "maximum_ms": 495.412,
+          "responses_over_200ms": 5
+        },
+        "computer_to_router": {
+          "transmitted": 180,
+          "received": 176,
+          "loss_percent": 2.222,
+          "largest_observed_sequence": 179,
+          "median_ms": 9.913499999999999,
+          "maximum_ms": 494.852,
+          "responses_over_200ms": 5
+        }
+      },
+      "collector": {
+        "camera": {
+          "pid": 64823,
+          "exit_code": -2
+        },
+        "phone_to_car": {
+          "pid": 64824,
+          "exit_code": 0
+        },
+        "phone_to_router": {
+          "pid": 64825,
+          "exit_code": 0
+        },
+        "computer_to_car": {
+          "pid": 64826,
+          "exit_code": 0
+        },
+        "computer_to_router": {
+          "pid": 64827,
+          "exit_code": 0
+        }
+      }
+    },
+    "device_final": {
+      "service": {
+        "MainPID": "94182",
+        "NRestarts": "0",
+        "ActiveState": "active"
+      },
+      "source_sha256": "6e29ed3145ba2245ef6b9eb4c94aad89ff9f9f88e077c9b6f0207332ec43783a",
+      "status": {
+        "server_time": "2024-12-26T18:59:33+08:00",
+        "camera": {
+          "status": "live",
+          "frame_time": "2024-12-26T18:59:33+08:00",
+          "age_ms": 51
+        },
+        "lidar": {
+          "observed_at": "2024-12-26T18:59:32+08:00",
+          "serial": "89DFED95C4E493CAA5E69EF0180F4B6E",
+          "health": "OK",
+          "status": "scanning",
+          "points": 4649,
+          "nearest_mm": 100.0,
+          "front_nearest_mm": 1122.0,
+          "sector_90_mm": 1422.0,
+          "sector_180_mm": 100.0,
+          "sector_270_mm": 291.0,
+          "age_seconds": 0.99
+        },
+        "bootId": "ffbde771bb8f4c6f81640152248d47fe",
+        "mode": "phone",
+        "speed": 40,
+        "moving": false,
+        "controlBusy": false
+      }
+    },
+    "root_cause_of_original_restart_confirmed": false,
+    "limitation": "Three minutes cannot establish long-term crash-free operation; GL periodic frame gaps still occur."
+  },
+  "durable_evidence_archive": {
+    "path": "/Users/raychen/Develop/AstraPlusCar/diagnostics/GL_SOAK_TEST_2026-10-03_115334.zip",
+    "bytes": 189104,
+    "sha256": "8694cbd203173b6de8944e7e2da28190fcf793446011ebb6f7a8d01912aea53f"
+  }
+}

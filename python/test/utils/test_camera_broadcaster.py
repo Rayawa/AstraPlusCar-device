@@ -128,6 +128,41 @@ class CameraBroadcasterTest(unittest.TestCase):
         image = np.ndarray((2, 2, 3), dtype=np.uint8, buffer=camera.frame.buf)
         self.assertTrue(np.all(image == 92))
 
+    def test_publication_during_freshness_check_does_not_reject_live_frame(self):
+        camera = self.CameraBroadcaster({'height': 2, 'width': 2, 'fps': 30})
+        self.addCleanup(camera.close)
+        camera.ready.set()
+        camera.last_frame_time.value = 99.0
+
+        def publish_after_clock_sample():
+            sampled = 100.0
+            camera.last_frame_time.value = 100.001
+            return sampled
+
+        with patch('time.monotonic', side_effect=publish_after_clock_sample):
+            camera.check_fresh()
+
+    def test_freshness_guards_still_reject_expired_future_and_failed_frames(self):
+        camera = self.CameraBroadcaster({'height': 2, 'width': 2, 'fps': 30})
+        self.addCleanup(camera.close)
+        camera.ready.set()
+        with patch('time.monotonic', return_value=100.0):
+            camera.last_frame_time.value = 99.0
+            camera.check_fresh()
+            for stamp in [98.0, 97.0, 101.0]:
+                with self.subTest(stamp=stamp):
+                    camera.last_frame_time.value = stamp
+                    with self.assertRaises(RuntimeError):
+                        camera.check_fresh()
+            camera.last_frame_time.value = 99.0
+            camera.failed.set()
+            with self.assertRaises(RuntimeError):
+                camera.check_fresh()
+            camera.failed.clear()
+            camera.ready.clear()
+            with self.assertRaises(RuntimeError):
+                camera.check_fresh()
+
 
 if __name__ == '__main__':
     unittest.main()
