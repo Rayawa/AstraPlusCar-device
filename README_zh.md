@@ -1,48 +1,15 @@
-# AstraPlusCar-device
+# AstraPlusCar
 
 [English](README.md) | 简体中文
 
-面向 Ascend 智能小车、结合 ESP32 的控制与计算机视觉示例。
-
-## 项目概述
-
-本分支整合 Python 车端运行时、相机共享、运动仲裁、雷达采集及面向 HarmonyOS 控制端的局域网 HTTP 服务。AI 场景通过运行时提交运动请求，不直接占用底盘。当前底盘路径基于 I²C，旧 ESP32 串口示例另行保留。语音及各模型流程具有独立依赖和验证状态。
-
-## 技术栈与依赖
-
-Python 3、NumPy、OpenCV、PySerial、filelock 和 PyTorch，见 `python/requirements.txt`。Ascend 推理另需兼容的 CANN/ACL 与 `.om` 模型；相机、底盘、雷达和 ESP32 流程需匹配的 SDK、驱动及硬件。
-
-## 文件结构
-
-- `python/` — 运行入口、运动场景、相机工具与推理模型。
-- `ESP32/` — 微控制器相关资源。
-- `Lane-Follow-Train/` — 巡线训练工具。
-- `auto_label_tool/`、`det_label_split/` — 数据集与标注工具。
-- `Lidar/`、`lidar_test/` — 雷达集成与实验。
-- `docs/` — 服务接口与操作说明。
-- `deploy/` — 主机服务配置。
-
-## 快速上手
-
-在已配置的 Linux 车端先核对硬件接线并安装平台 SDK，再从仓库根目录执行：
-
-```bash
-cd python
-python3 -m pip install -r requirements.txt
-python3 main.py --help
-```
-
-确认当前分支的模式和硬件配置后，可使用 `python3 main.py --mode manual` 进入手动控制。手机控制先查看 `python3 main.py --mode phone --help` 及[手机接口](docs/PHONE_API.md)，局域网地址为 `http://<vehicle-host>:8080`，以实际主机为准。模型、相机驱动及串口设备路径须与主机匹配，启用运动前先阅读源码。
-
-## 详细操作说明
 
 AstraPlusCar 是一台以 **Orange Pi AI Pro（Ascend 平台）** 为主控的智能小车。设备端用一套 Python 统一主程序驱动麦轮底盘、Astra+ 相机与 Slamtec 雷达，并运行 Ascend 离线模型完成标识识别、巡线与目标跟踪；手机端用 HarmonyOS 应用通过局域网 HTTP 遥控小车、观看实时画面并把截图存入私有图库。
 
 | 项目 | 内容 |
 | --- | --- |
 | 设备端入口 | `python3 main.py --mode manual`（另可选 `cmd` / `easy` / `phone` / `voice`） |
-| 手机连接地址 | `http://<小车地址>:8080`（2026-09-30 实车联调为 `http://<vehicle-host>:8080`） |
-| 车端部署目录 | `<user-home>/E2E-Samples-ziyan/src/E2E-Sample/Car/python` |
+| 手机连接地址 | `http://<小车地址>:8080`（2026-09-30 实车联调为 `http://192.168.8.204:8080`） |
+| 车端部署目录 | `/home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python` |
 | 硬件平台 | Orange Pi AI Pro / Ascend CANN / Python 3.9 / Linux |
 
 本文统一使用 `python3 main.py --mode 模式` 书写主程序命令。**仓库代码与车上已部署代码可能不同，启动前先核对目录和 `--help`。**
@@ -56,7 +23,7 @@ AstraPlusCar 是一台以 **Orange Pi AI Pro（Ascend 平台）** 为主控的�
 | 仓库 | 职责 |
 | --- | --- |
 | `AstraPlusCar-device`（本仓库） | 设备端 Python 主程序、底盘运动控制、相机与雷达采集、AI 推理、HTTP API、部署与服务配置，以及训练/标注等离线工具。 |
-| [AstraPlusCar-HarmonyOS](https://github.com/Rayawa/AstraPlusCar-HarmonyOS) | ArkTS 手机应用：显示视频与三向雷达、发送驾驶与调速指令、保存截图到应用私有图库。 |
+| [AstraPlusCar-HarmonyOS](../AstraPlusCar-HarmonyOS/README.md) | ArkTS 手机应用：显示视频与三向雷达、发送驾驶与调速指令、保存截图到应用私有图库。 |
 
 工作区根目录不初始化 Git，两份历史不合并。部署更新时须保留模型、采集数据与车端已有改动。
 
@@ -207,10 +174,10 @@ SSH 终端里单键输入、不按回车，初始速度控制值 40（范围 0�
 ### 3.1 第一步：SSH 连接小车
 
 ```bash
-ssh root@<vehicle-host>
+ssh root@192.168.8.204
 ```
 
-手机、电脑与小车须接入同一网络。车端 `<vehicle-host>` 实际位于 `eth0`，`wlan0` 保留 `<vehicle-host>`；换网络后以小车实际地址为准。
+手机、电脑与小车须接入同一网络。车端 `192.168.8.204` 实际位于 `eth0`，`wlan0` 保留 `192.168.149.1`；换网络后以小车实际地址为准。
 
 ### 3.2 第二步：初始化环境
 
@@ -218,11 +185,11 @@ ssh root@<vehicle-host>
 
 ```bash
 source /usr/local/Ascend/ascend-toolkit/set_env.sh
-source <user-home>/pyorbbecsdk/env.sh
-export PYTHONPATH="<user-home>/pyorbbecsdk/install/lib${PYTHONPATH:+:$PYTHONPATH}"
+source /home/HwHiAiUser/pyorbbecsdk/env.sh
+export PYTHONPATH="/home/HwHiAiUser/pyorbbecsdk/install/lib${PYTHONPATH:+:$PYTHONPATH}"
 export PATH="/usr/local/miniconda3/bin:$PATH"
-cd <user-home>/E2E-Samples-ziyan/src/E2E-Sample/Car/python
-CAMERA_PY=<user-home>/pyorbbecsdk/venv/bin/python
+cd /home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python
+CAMERA_PY=/home/HwHiAiUser/pyorbbecsdk/venv/bin/python
 ```
 
 `CAMERA_PY` 是相机专用解释器（独立相机工具使用）；主程序用 `python3` 或 `/usr/local/miniconda3/bin/python`。
@@ -238,7 +205,7 @@ CAMERA_PY=<user-home>/pyorbbecsdk/venv/bin/python
 | 标识辅助 | `python3 main.py --mode easy` | 自动启动 `Helper`，需要 `weights/yolo.om` |
 | 巡线 | `python3 main.py --mode cmd` | 输入 `LF` 后回车，需要 `weights/lfnet.om` |
 | 目标跟踪 | `python3 main.py --mode cmd` | 输入 `Tracking` 后回车，需要 `weights/tracking.om` |
-| 手机控制 | `python3 main.py --mode phone` | App 连接 `http://<vehicle-host>:8080`；前台运行，`Ctrl+C` 退出 |
+| 手机控制 | `python3 main.py --mode phone` | App 连接 `http://192.168.8.204:8080`；前台运行，`Ctrl+C` 退出 |
 | 语音驾驶 | `python3 main.py --mode voice --voice-model /path/to/vosk-model` | 相当于手动加后台语音，需要麦克风、Vosk 和中文模型 |
 | 驾驶时网页看画面 | `python3 main.py --mode manual --camera` | 通过 SSH 隧道打开浏览器预览 |
 | 驾驶时查看雷达 | `python3 main.py --mode manual --camera --lidar` | 预览页同时显示雷达状态；不自动避障 |
@@ -257,16 +224,16 @@ CAMERA_PY=<user-home>/pyorbbecsdk/venv/bin/python
 | 检查项 | 方法 | 期望结果 |
 | --- | --- | --- |
 | 程序就绪 | 观察启动日志 | 出现 `Ready: mode=...`，无 `Startup checks failed` |
-| 画面正常 | 加 `--camera` 后建立隧道：`ssh -N -L 8765:127.0.0.1:8765 root@<vehicle-host>`，浏览器打开 `http://127.0.0.1:8765/` | 画面实时刷新，`/status.json` 中 `camera.status` 为 `live` |
+| 画面正常 | 加 `--camera` 后建立隧道：`ssh -N -L 8765:127.0.0.1:8765 root@192.168.8.204`，浏览器打开 `http://127.0.0.1:8765/` | 画面实时刷新，`/status.json` 中 `camera.status` 为 `live` |
 | 相机独立验证 | `$CAMERA_PY camera_probe.py --seconds 10 --output capture/astra_check.jpg` | 输出帧数、分辨率、亮度，并保存非黑彩色照片 |
 | 截图落盘 | 按 `p`，然后执行 `ls -lt capture/*.jpg`（最新在前） | 打印 `Screenshot saved: ...` 且文件存在 |
 | 雷达正常 | `python3 lidar_probe.py --seconds 12` | JSON 中 `points` 大于 0，各方向距离有数值 |
-| 手机联通 | `curl -fsS http://<vehicle-host>:8080/api/v1/status` | 返回 `ok`、相机状态与雷达距离 |
+| 手机联通 | `curl -fsS http://192.168.8.204:8080/api/v1/status` | 返回 `ok`、相机状态与雷达距离 |
 
 从电脑下载车上文件：
 
 ```bash
-scp root@<vehicle-host>:<user-home>/E2E-Samples-ziyan/src/E2E-Sample/Car/python/capture/astra_check.jpg .
+scp root@192.168.8.204:/home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python/capture/astra_check.jpg .
 ```
 
 截图时间取决于车端时钟；车端日历时钟此前不正确（曾观察到回到 2024-12-26），NTP 自动校时未验证，重启后可检查 `timedatectl status`。
@@ -310,7 +277,7 @@ python3 main.py --help
 | `--voice-device` | ALSA 默认设备 | 指定麦克风设备，例如 `plughw:1,0`，以 `arecord -l` 为准 |
 | `--voice-move-seconds` | `1.0` | 语音运动自动停车时间，必须大于 0 且不超过 5 秒 |
 | `--lidar` / `--radar` | 关闭 | 开启雷达，二者等价；`phone` 自动开启 |
-| `--lidar-sdk` | `<user-home>/rplidar_sdk/output/Linux/Release/ultra_simple` | 雷达 SDK 可执行文件路径 |
+| `--lidar-sdk` | `/home/HwHiAiUser/rplidar_sdk/output/Linux/Release/ultra_simple` | 雷达 SDK 可执行文件路径 |
 | `--lidar-port` | `/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0` | 雷达串口路径 |
 | `--lidar-baudrate` | `115200` | 雷达波特率，正整数 |
 | `-h` / `--help` | 无 | 显示当前文件支持的参数后退出，不启动硬件 |
@@ -348,7 +315,7 @@ python3 main.py --mode manual --camera --camera-port 8765 --capture-dir capture
 电脑另开终端建立隧道，并保持其运行：
 
 ```bash
-ssh -N -L 8765:127.0.0.1:8765 root@<vehicle-host>
+ssh -N -L 8765:127.0.0.1:8765 root@192.168.8.204
 ```
 
 浏览器访问 `http://127.0.0.1:8765/`。非 `phone` 预览仅监听小车的 `127.0.0.1`；改 `--camera-port` 时也要修改隧道右侧端口。页面提供 MJPEG、保存画面入口和 `/status.json`；状态包含服务端时间与画面时间。`/stream.mjpg?fps=1..30` 可按客户端单独限速，超出范围返回 400。
@@ -356,7 +323,7 @@ ssh -N -L 8765:127.0.0.1:8765 root@<vehicle-host>
 键盘 `p`、语音“拍照”、网页截图与手机截图共用最新完整帧。主程序默认保存到 `capture/`，可改为：
 
 ```bash
-python3 main.py --mode manual --capture-dir <user-home>/astra-captures
+python3 main.py --mode manual --capture-dir /home/HwHiAiUser/astra-captures
 ```
 
 看到 `Screenshot saved` 或 HTTP 截图成功响应才表示文件写入成功。帧过期、队列满或保存失败会明确报错；截图写盘在后台进行，不阻塞驾驶。
@@ -426,7 +393,7 @@ python3 main.py --mode voice --voice-model /path/to/vosk-model \
 也可给 `cmd` 或 `easy` 附加 `--voice`：
 
 ```bash
-export VOSK_MODEL_PATH=<user-home>/models/vosk-chinese
+export VOSK_MODEL_PATH=/home/HwHiAiUser/models/vosk-chinese
 python3 main.py --mode manual --voice
 ```
 
@@ -470,9 +437,9 @@ python3 main.py --mode phone --phone-port 8080 --capture-dir capture
 在电脑或小车上查看状态、保存截图：
 
 ```bash
-curl -fsS http://<vehicle-host>:8080/api/v1/status
+curl -fsS http://192.168.8.204:8080/api/v1/status
 curl -fsS -X POST -H 'Content-Type: application/json' \
-  -d '{}' http://<vehicle-host>:8080/api/v1/camera/captures
+  -d '{}' http://192.168.8.204:8080/api/v1/camera/captures
 ```
 
 第二条会在车上创建截图。成功响应包含 `ok: true`；错误包含 `ok: false`、`code` 和 `message`，常见状态码为 400（参数错误）、404（不存在）、409（会话或序号失效）和 503（服务暂不可用）。完整请求与响应见 [docs/PHONE_API.md](docs/PHONE_API.md)。**API 当前没有身份认证，应在受信任局域网使用，不要把 8080 端口转发到其他网络。**
@@ -491,14 +458,14 @@ curl -fsS -X POST -H 'Content-Type: application/json' \
 证据指向局域网传输停顿，而非相机停止出帧；具体原因（路由器、无线拥塞或终端）尚未确定，**不能宣称无线断流已完全消除**。App 已实现前台自动退避重连，仍保留 2 秒视频看门狗与独立的设备 600 ms 运动租约；断流时清除按键、会话与续期，重连后不会重放旧动作。复测命令：
 
 ```bash
-python3 python/test/diagnose_phone_stream.py --base-url http://<vehicle-host>:8080 --seconds 180
+python3 python/test/diagnose_phone_stream.py --base-url http://192.168.8.204:8080 --seconds 180
 ```
 
 该脚本只发 GET 请求，同时读取视频与每秒状态，默认不写截图；回环测试在车端把地址换成 `http://127.0.0.1:8080`。配置为 30 FPS 不等于实际达到 30 FPS，应同时检查界面 FPS 与相机采集。
 
 #### 正式手机服务管理
 
-正式目录为 `<user-home>/E2E-Samples-ziyan/src/E2E-Sample/Car/python`。`astra-phone.service` 已安装，`python/start_phone.sh` 加载 Ascend 和 Orbbec 环境后运行 `/usr/local/miniconda3/bin/python main.py --mode phone`。**服务未设置开机自启**，重启后手动启动即可。
+正式目录为 `/home/HwHiAiUser/E2E-Samples-ziyan/src/E2E-Sample/Car/python`。`astra-phone.service` 已安装，`python/start_phone.sh` 加载 Ascend 和 Orbbec 环境后运行 `/usr/local/miniconda3/bin/python main.py --mode phone`。**服务未设置开机自启**，重启后手动启动即可。
 
 ```bash
 systemctl start astra-phone
@@ -506,7 +473,7 @@ systemctl status astra-phone
 systemctl stop astra-phone
 ```
 
-运行日志由程序写入正式目录的 `logs/`，服务管理日志可用 `journalctl -u astra-phone -f` 查看。被替换的正式目录文件备份在 `<user-home>/astra-backups/phone-20260930`，模型权重和已有截图没有覆盖。切回其他模式前先执行 `systemctl stop astra-phone`。
+运行日志由程序写入正式目录的 `logs/`，服务管理日志可用 `journalctl -u astra-phone -f` 查看。被替换的正式目录文件备份在 `/home/HwHiAiUser/astra-backups/phone-20260930`，模型权重和已有截图没有覆盖。切回其他模式前先执行 `systemctl stop astra-phone`。
 
 ### 4.10 退出与运行保护
 
@@ -529,12 +496,12 @@ systemctl stop astra-phone
 | --- | --- |
 | Orange Pi AI Pro、Linux、Python 3.9 | 当前车端运行平台；已见 Python 3.9.2。主程序使用 POSIX 终端、进程与文件锁 |
 | Ascend CANN / ACL | `.om` 模型推理；环境脚本 `/usr/local/Ascend/ascend-toolkit/set_env.sh` |
-| Orbbec SDK v1 Python binding | Astra+ 彩色流；本车 binding 在 `<user-home>/pyorbbecsdk/install/lib`，相机专用 Python 在 `pyorbbecsdk/venv/` |
+| Orbbec SDK v1 Python binding | Astra+ 彩色流；本车 binding 在 `/home/HwHiAiUser/pyorbbecsdk/install/lib`，相机专用 Python 在 `pyorbbecsdk/venv/` |
 | Astra+ USB 相机 | 主程序各模式都需要相机；当前采集彩色流，未提供深度驾驶功能 |
 | 麦轮底盘 / 电机驱动板 | 当前代码使用 I²C 总线 7、设备地址 `0x34`；具体硬件与轮向须现场确认 |
 | Slamtec 雷达及 SDK、`stdbuf` | `--lidar` 与 `phone` 必需；适配器通过 `stdbuf` 读取 SDK 输出，独立扫描不要求 ROS2 |
 | ALSA `arecord`、麦克风 | 语音可选依赖；使用单声道 16 kHz 录音 |
-| HarmonyOS 手机、DevEco Studio / SDK | 手机应用与构建环境，见 [HarmonyOS README](https://github.com/Rayawa/AstraPlusCar-HarmonyOS) |
+| HarmonyOS 手机、DevEco Studio / SDK | 手机应用与构建环境，见 [HarmonyOS README](../AstraPlusCar-HarmonyOS/README.md) |
 
 ### 5.2 Python 包与模型
 
@@ -639,7 +606,7 @@ AstraPlusCar/                         # 工作区根目录，不是 Git 仓库
 
 2026-09-30 已部署到原车载目录并安装正式 `astra-phone.service`，原 `astra-phone-integration` 临时服务已停止。`python/start_phone.sh` 进入正式目录、加载 CANN 与 Orbbec binding，然后运行 `/usr/local/miniconda3/bin/python main.py --mode phone`；`deploy/astra-phone.service` 使用该脚本。
 
-后续部署先备份并比较原目录，确认 Python 代码、SDK 依赖与模型相互匹配；更新服务模板后执行 `systemctl daemon-reload`。本次被替换文件的备份位于 `<user-home>/astra-backups/phone-20260930`。
+后续部署先备份并比较原目录，确认 Python 代码、SDK 依赖与模型相互匹配；更新服务模板后执行 `systemctl daemon-reload`。本次被替换文件的备份位于 `/home/HwHiAiUser/astra-backups/phone-20260930`。
 
 ### 7.4 离线与实车验证
 
@@ -655,7 +622,7 @@ PYTHONPATH=python python3 -m unittest discover -s python/test/utils -p test_came
 HTTP 实车检查入口（在仓库根目录执行）：
 
 ```bash
-python3 python/test/live_phone_api.py --base-url http://<vehicle-host>:8080
+python3 python/test/live_phone_api.py --base-url http://192.168.8.204:8080
 ```
 
 默认检查状态、视频、截图创建和下载，不发送运动指令；它会在车端创建一张截图。**仅在车轮安全架空后**加 `--motion`，检查短时运动、速度、续期、停车和失联保护。
