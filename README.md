@@ -33,23 +33,23 @@ Responsibilities: **the phone provides the interface and high-level commands; th
 
 ```text
 ┌──────────────────────────────────────────────┐
-│              HarmonyOS 手机 App              │
-│     视频预览 / 三向雷达 / 控制盘 / 图库      │
+│             HarmonyOS mobile app              │
+│ Video / three-direction lidar / controls / gallery │
 └───────────────────┬──────────────────────────┘
-                    │ 局域网 HTTP :8080
+                    │ LAN HTTP :8080
 ┌───────────────────┴──────────────────────────┐
-│          设备端 main.py 统一主程序           │
+│             Device unified main.py            │
 │  ┌────────────────────────────────────────┐  │
-│  │ 主循环：输入 → 运动仲裁 → 底盘         │  │
-│  │ （唯一底盘写者）                       │  │
+│  │ Main loop: input → motion arbiter → chassis │ │
+│  │ (the only chassis writer)                  │ │
 │  ├────────────────────────────────────────┤  │
-│  │ 相机进程：CameraBroadcaster            │  │
-│  │ 场景进程：AI 推理 → 动作队列           │  │
-│  │ 服务线程：预览 / 手机 / 语音 / 雷达    │  │
+│  │ Camera process: CameraBroadcaster          │ │
+│  │ Scene processes: AI → action queue         │ │
+│  │ Service threads: preview / phone / voice / lidar │
 │  └────────────────────────────────────────┘  │
 └──────┬──────────────┬──────────────┬─────────┘
-  Astra+ 相机   Slamtec 雷达  麦轮底盘（I²C）
- 彩色流 / 截图  扫描测距 / 扇区  四轮速度与转向
+  Astra+ camera   Slamtec lidar   Mecanum chassis (I²C)
+ Color / captures  Scans / sectors  Four-wheel speed and direction
 ```
 
 ### 1.3 Device runtime architecture
@@ -520,7 +520,7 @@ Example Python package installation in a separately prepared development environ
 ```bash
 python3 -m pip install -r requirements.txt
 python3 -m pip install smbus2 PyYAML
-# 需要语音时再安装
+# Install only if voice is needed
 python3 -m pip install -r requirements-voice.txt
 ```
 
@@ -535,46 +535,46 @@ If the current `python3` lacks main-program dependencies, inspect the installed 
 ## 6. File structure
 
 ```text
-AstraPlusCar/                         # 工作区根目录，不是 Git 仓库
-├── AstraPlusCar-device/              # 本仓库
+AstraPlusCar/                         # Workspace root, not a Git repository
+├── AstraPlusCar-device/              # This repository
 │   ├── README.md
 │   ├── docs/
-│   │   ├── PHONE_API.md              # 手机 HTTP 协议
-│   │   └── STREAM_DIAGNOSIS_2026-10-02.md  # 断流诊断记录
-│   ├── deploy/astra-phone.service    # 正式服务配置模板
+│   │   ├── PHONE_API.md              # Mobile HTTP protocol
+│   │   └── STREAM_DIAGNOSIS_2026-10-02.md  # Stream disconnection diagnostics
+│   ├── deploy/astra-phone.service    # Official service configuration template
 │   ├── python/
-│   │   ├── main.py                   # 统一主入口
-│   │   ├── start_phone.sh            # 正式 phone 服务启动脚本
-│   │   ├── motion_control.py         # 指令仲裁、速度、定时动作、停车
-│   │   ├── phone_mode.py             # HTTP 会话、续期与 API
-│   │   ├── astra_camera.py           # Astra+ 取流与图像转换
-│   │   ├── camera_tasks.py           # 后台截图任务
-│   │   ├── camera_probe.py           # 独立取帧 / 拍照检查
-│   │   ├── camera_preview.py         # 共享预览服务与独立预览入口
-│   │   ├── lidar_probe.py            # 雷达扫描工具与后台服务
-│   │   ├── voice_control.py          # Vosk 服务与文字映射工具
+│   │   ├── main.py                   # Unified main entry point
+│   │   ├── start_phone.sh            # Official phone service startup script
+│   │   ├── motion_control.py         # Command arbitration, speed, timed actions, stopping
+│   │   ├── phone_mode.py             # HTTP sessions, renewal, and APIs
+│   │   ├── astra_camera.py           # Astra+ acquisition and image conversion
+│   │   ├── camera_tasks.py           # Background capture tasks
+│   │   ├── camera_probe.py           # Standalone frame / photo check
+│   │   ├── camera_preview.py         # Shared preview service and standalone entry point
+│   │   ├── lidar_probe.py            # Lidar scan tool and background service
+│   │   ├── voice_control.py          # Vosk service and text mapping
 │   │   ├── requirements*.txt
 │   │   ├── src/
-│   │   │   ├── actions/              # 基础动作与组合动作
-│   │   │   ├── scenes/               # Manual、Helper、LF、Tracking 场景
-│   │   │   ├── models/               # Ascend 模型封装与后处理
-│   │   │   └── utils/                # 底盘、相机广播、日志与 ACL 工具
-│   │   ├── weights/                  # yolo.om；其他模型另行配置
-│   │   ├── capture/                  # 默认截图输出
-│   │   ├── logs/                     # 运行日志
+│   │   │   ├── actions/              # Basic and combined actions
+│   │   │   ├── scenes/               # Manual, Helper, LF, Tracking scenes
+│   │   │   ├── models/               # Ascend model wrappers and postprocessing
+│   │   │   └── utils/                # Chassis, camera broadcast, logs, ACL tools
+│   │   ├── weights/                  # yolo.om; configure other models separately
+│   │   ├── capture/                  # Default capture output
+│   │   ├── logs/                     # Runtime logs
 │   │   └── test/
-│   │       ├── offline/              # 离线回归用例
-│   │       ├── live_phone_api.py     # 实车 Phone API 检查
-│   │       └── diagnose_phone_stream.py  # 只读视频/状态诊断
-│   ├── ESP32/                        # ESP32 电机 / 舵机固件
-│   ├── 基于ESP32的智能小车控制/      # 接线与控制方案资料
-│   ├── Lane-Follow-Train/            # 巡线模型训练
-│   ├── auto_label_tool/              # 车道线 HSV 标注工具
-│   ├── det_label_split/              # 检测数据转分类数据与训练工具
-│   ├── lidar_test/                   # 雷达 SDK、ROS2 示例与配置
-│   └── notebook/                     # 历史交互控制示例
-└── AstraPlusCar-HarmonyOS/           # 独立的 ArkTS 应用仓库
-    ├── entry/src/main/ets/           # 页面、组件、API、图库与模型
+│   │       ├── offline/              # Offline regression cases
+│   │       ├── live_phone_api.py     # Physical-vehicle Phone API check
+│   │       └── diagnose_phone_stream.py  # Read-only video/status diagnostics
+│   ├── ESP32/                        # ESP32 motor / servo firmware
+│   ├── 基于ESP32的智能小车控制/      # Wiring and control design materials
+│   ├── Lane-Follow-Train/            # Lane-following model training
+│   ├── auto_label_tool/              # HSV lane annotation tool
+│   ├── det_label_split/              # Detection-to-classification conversion and training
+│   ├── lidar_test/                   # Lidar SDK, ROS2 examples, configuration
+│   └── notebook/                     # Historical interactive control examples
+└── AstraPlusCar-HarmonyOS/           # Independent ArkTS app repository
+    ├── entry/src/main/ets/           # Pages, components, APIs, gallery, models
     └── README.md
 ```
 
