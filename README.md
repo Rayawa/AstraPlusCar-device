@@ -34,22 +34,22 @@ The project includes low-level chassis control, simple and complex motions, util
 ```
 Car
 ├── python
-│   ├── main.py   #小车demo运行总入口
-│   ├── requirements.txt #小车demo样例所需依赖
+│   ├── main.py   # Vehicle demo main entry point
+│   ├── requirements.txt # Vehicle demo dependencies
 │   ├── src
-│   │   ├── Lane-Follow-Train #循迹驾驶部分训练代码
-│   │   ├── det_label_spilt #检测辅助分类模型
+│   │   ├── Lane-Follow-Train # Lane-following training code
+│   │   ├── det_label_spilt # Auxiliary detection classification model
 │   │   ├── actions
-│   │   │   ├── base_action.py #小车基础运动代码
-│   │   │   ├── complex_actions.py #小车复杂运动代码
+│   │   │   ├── base_action.py # Basic vehicle motion
+│   │   │   ├── complex_actions.py # Complex vehicle motion
 │   │   │   └── __init__.py
 │   │   ├── models
-│   │   │   ├── bsae_model.py #基础模型
-│   │   │   ├── det_cls.py #检测分类模型
+│   │   │   ├── bsae_model.py # Base model
+│   │   │   ├── det_cls.py # Detection classification model
 │   │   │   ├── __init__.py
-│   │   │   ├── lfnet.py #推理
-│   │   │   └── yolov5.py #yolov5检测模型
-│   │   ├── scenes  # 智能车预设场景相关代码
+│   │   │   ├── lfnet.py # Inference
+│   │   │   └── yolov5.py # YOLOv5 detection model
+│   │   ├── scenes  # Preset smart-vehicle scenes
 │   │   │   ├── base_scene.py 
 │   │   │   ├── command.py
 │   │   │   ├── helper.py
@@ -57,7 +57,7 @@ Car
 │   │   │   ├── lane_following.py
 │   │   │   ├── manual.py
 │   │   │   └── tracking.py
-│   │   └── utils #工具类python文件
+│   │   └── utils # Python utilities
 │   │       ├── acl_utils.py
 │   │       ├── camera_broadcaster.py
 │   │       ├── common_utils.py
@@ -67,7 +67,7 @@ Car
 │   │       ├── __init__.py
 │   │       ├── init_utils.py
 │   │       └── logger.py
-│   └── weights #模型权重文件
+│   └── weights # Model weights
 └── 基于ESP32的智能小车控制
     ├── car_ctrl_esp32.ino
 ```
